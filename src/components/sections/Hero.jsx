@@ -10,6 +10,7 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { ArrowDown, ArrowRight, Loader2 } from 'lucide-react';
+import AdaptiveVideo from '../common/AdaptiveVideo';
 
 /**
  * Rotating subheadlines for emotional impact.
@@ -27,7 +28,10 @@ const ROTATING_MESSAGES = [
  * @param {Object} props - Component props
  */
 function Hero({
-  backgroundVideo,
+  fullVideo,
+  compressedVideo,
+  posterImage,
+  backgroundVideo, // Backwards compatibility
   ctaHref = '#rooms',
 }) {
   // --- State Management ---
@@ -142,17 +146,13 @@ function Hero({
         }}
       >
         <div className="hero__overlay" style={{ opacity: 0.4 + (scrollProgress * 0.6) }} />
-        {backgroundVideo && (
-          <video
-            className="hero__media"
-            autoPlay
-            muted
-            loop
-            playsInline
-          >
-            <source src={process.env.PUBLIC_URL + backgroundVideo} type="video/mp4" />
-          </video>
-        )}
+
+        <AdaptiveVideo
+          fullVideoSrc={fullVideo || backgroundVideo}
+          compressedVideoSrc={compressedVideo}
+          posterSrc={posterImage || '/images/hero.webp'}
+          className="hero__media"
+        />
       </div>
 
       {/* Content Container */}

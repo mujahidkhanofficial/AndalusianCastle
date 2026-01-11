@@ -314,7 +314,9 @@ export const HERO_CONTENT = {
     tagline: 'Where Luxury Meets Comfort in the Heart of Lahore',
     ctaText: 'Reserve Your Experience',
     ctaHref: WHATSAPP_LINK,
-    backgroundVideo: '/videos/hero.mp4',
+    fullVideo: '/videos/hero.mp4',
+    compressedVideo: '/videos/hero.mp4', // Use same video until compressed version exists
+    posterImage: '/images/hero.webp',    // Use existing hero image as poster
 };
 
 export default {

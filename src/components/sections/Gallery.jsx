@@ -161,6 +161,8 @@ function Gallery() {
                 src={process.env.PUBLIC_URL + image.src}
                 alt={image.alt}
                 loading="lazy"
+                decoding="async"
+                fetchpriority="low"
               />
               <div className="gallery__overlay">
                 <Maximize2 size={24} className="gallery__zoom-icon" />
@@ -237,7 +239,12 @@ function Gallery() {
                   className={`gallery__thumb ${idx === lightbox.currentIndex ? 'gallery__thumb--active' : ''}`}
                   onClick={() => goToSlide(idx)}
                 >
-                  <img src={process.env.PUBLIC_URL + img.src} alt="" />
+                  <img
+                    src={process.env.PUBLIC_URL + img.src}
+                    alt={`${img.alt} thumbnail`}
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </button>
               ))}
             </div>

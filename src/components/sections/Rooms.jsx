@@ -323,7 +323,7 @@ function Rooms() {
                 onClick={() => setLightbox((prev) => ({ ...prev, currentIndex: idx }))}
                 aria-label={`View image ${idx + 1}`}
               >
-                <img src={process.env.PUBLIC_URL + img} alt="" loading="lazy" />
+                <img src={process.env.PUBLIC_URL + img} alt={`${lightbox.room.name} view ${idx + 1}`} loading="lazy" decoding="async" />
               </button>
             ))}
           </div>

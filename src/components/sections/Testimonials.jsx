@@ -244,6 +244,7 @@ function Testimonials() {
                     src={process.env.PUBLIC_URL + currentTestimonial.avatar}
                     alt={currentTestimonial.name}
                     loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <div className="testimonials__tag">

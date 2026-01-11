@@ -71,19 +71,24 @@ function Navigation({
 
   // Handle scroll for sticky nav and hide on scroll down - FR-2.1, FR-2.7
   useEffect(() => {
+    const SCROLL_DELTA_THRESHOLD = 10; // Minimum scroll delta to trigger hide/show
+
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
+      const scrollDelta = currentScrollY - lastScrollY.current;
 
       // Determine if scrolled past threshold
       setIsScrolled(currentScrollY > scrollThreshold);
 
       // Hide nav on scroll down, show on scroll up (only when scrolled)
+      // Added delta threshold to prevent micro-scroll jitter
       if (currentScrollY > scrollThreshold) {
-        if (currentScrollY > lastScrollY.current && currentScrollY > 300) {
+        if (scrollDelta > SCROLL_DELTA_THRESHOLD && currentScrollY > 300) {
           setIsHidden(true);
-        } else {
+        } else if (scrollDelta < -SCROLL_DELTA_THRESHOLD) {
           setIsHidden(false);
         }
+        // If delta is small, maintain current state (no change)
       } else {
         setIsHidden(false);
       }
