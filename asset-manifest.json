@@ -1,0 +1,27 @@
+{
+  "files": {
+    "main.css": "/AndalusianCastle/static/css/main.bd435432.css",
+    "main.js": "/AndalusianCastle/static/js/main.9bd298aa.js",
+    "static/js/651.1ef5975e.chunk.js": "/AndalusianCastle/static/js/651.1ef5975e.chunk.js",
+    "static/js/399.01bee279.chunk.js": "/AndalusianCastle/static/js/399.01bee279.chunk.js",
+    "static/js/787.2900f335.chunk.js": "/AndalusianCastle/static/js/787.2900f335.chunk.js",
+    "static/js/118.ae706d44.chunk.js": "/AndalusianCastle/static/js/118.ae706d44.chunk.js",
+    "static/js/940.287b8a48.chunk.js": "/AndalusianCastle/static/js/940.287b8a48.chunk.js",
+    "static/js/768.59fe7aa4.chunk.js": "/AndalusianCastle/static/js/768.59fe7aa4.chunk.js",
+    "static/js/321.32253404.chunk.js": "/AndalusianCastle/static/js/321.32253404.chunk.js",
+    "index.html": "/AndalusianCastle/index.html",
+    "main.bd435432.css.map": "/AndalusianCastle/static/css/main.bd435432.css.map",
+    "main.9bd298aa.js.map": "/AndalusianCastle/static/js/main.9bd298aa.js.map",
+    "651.1ef5975e.chunk.js.map": "/AndalusianCastle/static/js/651.1ef5975e.chunk.js.map",
+    "399.01bee279.chunk.js.map": "/AndalusianCastle/static/js/399.01bee279.chunk.js.map",
+    "787.2900f335.chunk.js.map": "/AndalusianCastle/static/js/787.2900f335.chunk.js.map",
+    "118.ae706d44.chunk.js.map": "/AndalusianCastle/static/js/118.ae706d44.chunk.js.map",
+    "940.287b8a48.chunk.js.map": "/AndalusianCastle/static/js/940.287b8a48.chunk.js.map",
+    "768.59fe7aa4.chunk.js.map": "/AndalusianCastle/static/js/768.59fe7aa4.chunk.js.map",
+    "321.32253404.chunk.js.map": "/AndalusianCastle/static/js/321.32253404.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.bd435432.css",
+    "static/js/main.9bd298aa.js"
+  ]
+}
