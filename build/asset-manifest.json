@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/AndalusianCastle/static/css/main.bd435432.css",
+    "main.js": "/AndalusianCastle/static/js/main.406b0bd2.js",
+    "index.html": "/AndalusianCastle/index.html",
+    "main.bd435432.css.map": "/AndalusianCastle/static/css/main.bd435432.css.map",
+    "main.406b0bd2.js.map": "/AndalusianCastle/static/js/main.406b0bd2.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.bd435432.css",
+    "static/js/main.406b0bd2.js"
+  ]
+}
