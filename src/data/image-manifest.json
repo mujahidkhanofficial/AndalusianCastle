@@ -1,0 +1,266 @@
+[
+  {
+    "original": "dining.jpeg",
+    "filename": "dining-01-chef.webp",
+    "path": "/images/dining/dining-01-chef.webp",
+    "category": "dining",
+    "altText": "dining image featuring chef at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "interior.jpeg",
+    "filename": "events-01-meeting.webp",
+    "path": "/images/events/events-01-meeting.webp",
+    "category": "events",
+    "altText": "events image featuring meeting at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "kitchen.jpeg",
+    "filename": "dining-02-breakfast.webp",
+    "path": "/images/dining/dining-02-breakfast.webp",
+    "category": "dining",
+    "altText": "dining image featuring breakfast at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "room.jpeg",
+    "filename": "rooms-01-luxury.webp",
+    "path": "/images/rooms/rooms-01-luxury.webp",
+    "category": "rooms",
+    "altText": "rooms image featuring luxury at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "room1.jpeg",
+    "filename": "rooms-02-comfort.webp",
+    "path": "/images/rooms/rooms-02-comfort.webp",
+    "category": "rooms",
+    "altText": "rooms image featuring comfort at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.21 PM (1).jpeg",
+    "filename": "rooms-03-stay.webp",
+    "path": "/images/rooms/rooms-03-stay.webp",
+    "category": "rooms",
+    "altText": "rooms image featuring stay at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.21 PM.jpeg",
+    "filename": "rooms-04-elegant.webp",
+    "path": "/images/rooms/rooms-04-elegant.webp",
+    "category": "rooms",
+    "altText": "rooms image featuring elegant at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.22 PM (1).jpeg",
+    "filename": "rooms-05-view.webp",
+    "path": "/images/rooms/rooms-05-view.webp",
+    "category": "rooms",
+    "altText": "rooms image featuring view at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.22 PM.jpeg",
+    "filename": "rooms-06-elegant.webp",
+    "path": "/images/rooms/rooms-06-elegant.webp",
+    "category": "rooms",
+    "altText": "rooms image featuring elegant at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.23 PM (1).jpeg",
+    "filename": "rooms-07-suite.webp",
+    "path": "/images/rooms/rooms-07-suite.webp",
+    "category": "rooms",
+    "altText": "rooms image featuring suite at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.23 PM.jpeg",
+    "filename": "rooms-08-relax.webp",
+    "path": "/images/rooms/rooms-08-relax.webp",
+    "category": "rooms",
+    "altText": "rooms image featuring relax at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.24 PM (1).jpeg",
+    "filename": "rooms-09-bed.webp",
+    "path": "/images/rooms/rooms-09-bed.webp",
+    "category": "rooms",
+    "altText": "rooms image featuring bed at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.24 PM.jpeg",
+    "filename": "rooms-10-luxury.webp",
+    "path": "/images/rooms/rooms-10-luxury.webp",
+    "category": "rooms",
+    "altText": "rooms image featuring luxury at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.25 PM (1).jpeg",
+    "filename": "dining-03-feast.webp",
+    "path": "/images/dining/dining-03-feast.webp",
+    "category": "dining",
+    "altText": "dining image featuring feast at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.25 PM.jpeg",
+    "filename": "dining-04-gourmet.webp",
+    "path": "/images/dining/dining-04-gourmet.webp",
+    "category": "dining",
+    "altText": "dining image featuring gourmet at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.26 PM (1).jpeg",
+    "filename": "dining-05-dinner.webp",
+    "path": "/images/dining/dining-05-dinner.webp",
+    "category": "dining",
+    "altText": "dining image featuring dinner at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.26 PM.jpeg",
+    "filename": "dining-06-feast.webp",
+    "path": "/images/dining/dining-06-feast.webp",
+    "category": "dining",
+    "altText": "dining image featuring feast at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.27 PM (1).jpeg",
+    "filename": "spa-01-wellness.webp",
+    "path": "/images/spa/spa-01-wellness.webp",
+    "category": "spa",
+    "altText": "spa image featuring wellness at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.27 PM.jpeg",
+    "filename": "spa-02-treatment.webp",
+    "path": "/images/spa/spa-02-treatment.webp",
+    "category": "spa",
+    "altText": "spa image featuring treatment at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.28 PM (1).jpeg",
+    "filename": "spa-03-treatment.webp",
+    "path": "/images/spa/spa-03-treatment.webp",
+    "category": "spa",
+    "altText": "spa image featuring treatment at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.28 PM.jpeg",
+    "filename": "spa-04-wellness.webp",
+    "path": "/images/spa/spa-04-wellness.webp",
+    "category": "spa",
+    "altText": "spa image featuring wellness at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.29 PM (1).jpeg",
+    "filename": "events-02-celebration.webp",
+    "path": "/images/events/events-02-celebration.webp",
+    "category": "events",
+    "altText": "events image featuring celebration at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.29 PM.jpeg",
+    "filename": "events-03-wedding.webp",
+    "path": "/images/events/events-03-wedding.webp",
+    "category": "events",
+    "altText": "events image featuring wedding at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.30 PM (1).jpeg",
+    "filename": "events-04-wedding.webp",
+    "path": "/images/events/events-04-wedding.webp",
+    "category": "events",
+    "altText": "events image featuring wedding at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.30 PM.jpeg",
+    "filename": "events-05-meeting.webp",
+    "path": "/images/events/events-05-meeting.webp",
+    "category": "events",
+    "altText": "events image featuring meeting at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.31 PM (1).jpeg",
+    "filename": "exterior-01-pool.webp",
+    "path": "/images/exterior/exterior-01-pool.webp",
+    "category": "exterior",
+    "altText": "exterior image featuring pool at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.31 PM.jpeg",
+    "filename": "exterior-02-facade.webp",
+    "path": "/images/exterior/exterior-02-facade.webp",
+    "category": "exterior",
+    "altText": "exterior image featuring facade at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.32 PM.jpeg",
+    "filename": "exterior-03-night.webp",
+    "path": "/images/exterior/exterior-03-night.webp",
+    "category": "exterior",
+    "altText": "exterior image featuring night at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.33 PM (1).jpeg",
+    "filename": "exterior-04-view.webp",
+    "path": "/images/exterior/exterior-04-view.webp",
+    "category": "exterior",
+    "altText": "exterior image featuring view at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.33 PM.jpeg",
+    "filename": "exterior-05-garden.webp",
+    "path": "/images/exterior/exterior-05-garden.webp",
+    "category": "exterior",
+    "altText": "exterior image featuring garden at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.34 PM (1).jpeg",
+    "filename": "exterior-06-garden.webp",
+    "path": "/images/exterior/exterior-06-garden.webp",
+    "category": "exterior",
+    "altText": "exterior image featuring garden at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.34 PM (2).jpeg",
+    "filename": "exterior-07-garden.webp",
+    "path": "/images/exterior/exterior-07-garden.webp",
+    "category": "exterior",
+    "altText": "exterior image featuring garden at Andalusian Castle, Lahore",
+    "usedIn": []
+  },
+  {
+    "original": "WhatsApp Image 2026-01-10 at 6.13.34 PM.jpeg",
+    "filename": "exterior-08-architecture.webp",
+    "path": "/images/exterior/exterior-08-architecture.webp",
+    "category": "exterior",
+    "altText": "exterior image featuring architecture at Andalusian Castle, Lahore",
+    "usedIn": []
+  }
+]

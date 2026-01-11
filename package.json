@@ -1,0 +1,49 @@
+{
+    "name": "andalusian-castle",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Luxury hotel static SPA for Andalusian Castle",
+    "author": "Andalusian Castle",
+    "license": "UNLICENSED",
+    "scripts": {
+        "start": "react-scripts start",
+        "build": "react-scripts build",
+        "test": "react-scripts test",
+        "eject": "react-scripts eject",
+        "serve": "serve -s build -l 3000",
+        "sitemap": "node scripts/generate-sitemap.js",
+        "lighthouse": "lhci autorun",
+        "lighthouse:local": "npx lighthouse http://localhost:3000 --output html --output-path ./lighthouse-report.html",
+        "analyze": "source-map-explorer 'build/static/js/*.js'",
+        "prebuild": "npm run sitemap"
+    },
+    "dependencies": {
+        "lucide-react": "^0.562.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0",
+        "react-helmet-async": "^2.0.4",
+        "react-scripts": "^5.0.1",
+        "sharp": "^0.34.5",
+        "web-vitals": "^3.5.0"
+    },
+    "devDependencies": {
+        "@lhci/cli": "^0.13.0",
+        "serve": "^14.2.1",
+        "source-map-explorer": "^2.5.3"
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    }
+}
