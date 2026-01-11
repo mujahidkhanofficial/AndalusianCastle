@@ -20,7 +20,6 @@ import Amenities from './components/sections/Amenities';
 import TourGuide from './components/sections/TourGuide';
 import Gallery from './components/sections/Gallery';
 import Testimonials from './components/sections/Testimonials';
-import Offers from './components/sections/Offers';
 import Location from './components/sections/Location';
 
 /**
@@ -61,9 +60,6 @@ function App() {
 
                 {/* Testimonials/Reviews Section */}
                 <Testimonials />
-
-                {/* Special Offers Section */}
-                <Offers />
 
                 {/* Location & Contact Section */}
                 <Location />

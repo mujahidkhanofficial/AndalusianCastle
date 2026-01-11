@@ -11,10 +11,10 @@ import React, { useState, useEffect, useCallback } from 'react';
  * Legal content data.
  */
 const LEGAL_CONTENT = {
-    privacy: {
-        title: 'Privacy Policy',
-        lastUpdated: 'January 1, 2026',
-        content: `
+  privacy: {
+    title: 'Privacy Policy',
+    lastUpdated: 'January 1, 2026',
+    content: `
 ## 1. Information We Collect
 
 Andalusian Castle collects information you provide directly, including:
@@ -66,15 +66,16 @@ We retain personal data for:
 ## 7. Contact Us
 
 For privacy inquiries:
-- Email: privacy@andalusiancastle.com
-- Phone: +34 952 123 456
-- Address: Camino del Castillo, 123, Marbella, 29600, Spain
+- Email: AndalusianCastleSuite@gmail.com
+- Phone: +92 316 6268625
+- WhatsApp: +92 316 6268625
+- Address: Plaza 100, Nishtar Block, Sector E, Bahria Town, Lahore, Pakistan
     `,
-    },
-    terms: {
-        title: 'Terms of Service',
-        lastUpdated: 'January 1, 2026',
-        content: `
+  },
+  terms: {
+    title: 'Terms of Service',
+    lastUpdated: 'January 1, 2026',
+    content: `
 ## 1. Acceptance of Terms
 
 By accessing or using the Andalusian Castle website and services, you agree to be bound by these Terms of Service and all applicable laws and regulations.
@@ -88,16 +89,16 @@ By accessing or using the Andalusian Castle website and services, you agree to b
 
 ## 3. Check-In / Check-Out
 
-- **Check-In Time**: 3:00 PM
+- **Check-In Time**: 2:00 PM
 - **Check-Out Time**: 12:00 PM (Noon)
 - **Early Check-In / Late Check-Out**: Subject to availability and may incur additional charges.
 
 ## 4. Payment Terms
 
-- **Accepted Methods**: Visa, MasterCard, American Express, Bank Transfer
-- **Currency**: All prices quoted in Euros (€)
-- **Deposit**: 50% deposit required at time of booking for most rates
-- **Balance**: Remaining balance due upon check-out
+- **Accepted Methods**: Visa, MasterCard, JazzCash, EasyPaisa, Bank Transfer
+- **Currency**: All prices quoted in Pakistani Rupees (PKR)
+- **Deposit**: Advance payment required at time of booking
+- **Balance**: Remaining balance due upon check-in
 
 ## 5. Cancellation Policy
 
@@ -124,13 +125,13 @@ All content on this website is the property of Andalusian Castle and protected b
 
 ## 9. Governing Law
 
-These terms are governed by the laws of Spain. Disputes shall be resolved in the courts of Málaga.
+These terms are governed by the laws of Pakistan. Disputes shall be resolved in the courts of Lahore.
     `,
-    },
-    cookies: {
-        title: 'Cookie Policy',
-        lastUpdated: 'January 1, 2026',
-        content: `
+  },
+  cookies: {
+    title: 'Cookie Policy',
+    lastUpdated: 'January 1, 2026',
+    content: `
 ## What Are Cookies?
 
 Cookies are small text files stored on your device when you visit our website. They help us provide a better browsing experience.
@@ -186,32 +187,32 @@ We may update this Cookie Policy periodically. The "Last Updated" date reflects 
 
 ## Contact
 
-Questions about cookies? Contact privacy@andalusiancastle.com
+Questions about cookies? Contact AndalusianCastleSuite@gmail.com
     `,
-    },
-    cancellation: {
-        title: 'Cancellation Policy',
-        lastUpdated: 'January 1, 2026',
-        content: `
+  },
+  cancellation: {
+    title: 'Cancellation Policy',
+    lastUpdated: 'January 1, 2026',
+    content: `
 ## Standard Cancellation Terms
 
 ### Flexible Rate Bookings
-- **30+ days before arrival**: Full refund minus €50 processing fee
-- **15-29 days before arrival**: 50% refund
-- **7-14 days before arrival**: 25% refund
-- **Less than 7 days**: No refund
+- **7+ days before arrival**: Full refund minus PKR 5,000 processing fee
+- **3-6 days before arrival**: 50% refund
+- **1-2 days before arrival**: 25% refund
+- **Same day**: No refund
 
 ### Non-Refundable Rate Bookings
 - No refunds for cancellations at any time
 - Date changes subject to availability and rate differences
 
 ### Peak Season & Holidays
-Peak periods (July-August, Christmas, Easter) may have stricter cancellation terms, which will be communicated at time of booking.
+Peak periods (Eid, Independence Day, New Year) may have stricter cancellation terms, which will be communicated at time of booking.
 
 ## Modifications
 
 ### Date Changes
-- Requests must be made at least 7 days before original arrival date
+- Requests must be made at least 3 days before original arrival date
 - Subject to availability
 - Rate differences may apply
 
@@ -245,9 +246,9 @@ Groups of 5+ rooms have separate cancellation terms provided in the group contra
 
 ## How to Cancel
 
-- **Online**: Through your booking confirmation link
-- **Email**: reservations@andalusiancastle.com
-- **Phone**: +34 952 123 456
+- **WhatsApp**: +92 316 6268625
+- **Email**: AndalusianCastleSuite@gmail.com
+- **Phone**: +92 316 6268625
 
 Please include your booking confirmation number in all correspondence.
 
@@ -255,70 +256,70 @@ Please include your booking confirmation number in all correspondence.
 
 We strongly recommend purchasing travel insurance to protect against unforeseen circumstances.
     `,
-    },
+  },
 };
 
 /**
  * Legal Page Modal Component.
  */
 function LegalModal({ isOpen, onClose, pageType }) {
-    const content = LEGAL_CONTENT[pageType];
+  const content = LEGAL_CONTENT[pageType];
 
-    // Keyboard handling
-    useEffect(() => {
-        const handleEscape = (e) => {
-            if (e.key === 'Escape' && isOpen) onClose();
-        };
-        document.addEventListener('keydown', handleEscape);
-        return () => document.removeEventListener('keydown', handleEscape);
-    }, [isOpen, onClose]);
+  // Keyboard handling
+  useEffect(() => {
+    const handleEscape = (e) => {
+      if (e.key === 'Escape' && isOpen) onClose();
+    };
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, onClose]);
 
-    // Body scroll lock
-    useEffect(() => {
-        if (isOpen) {
-            document.body.style.overflow = 'hidden';
-        } else {
-            document.body.style.overflow = '';
-        }
-        return () => {
-            document.body.style.overflow = '';
-        };
-    }, [isOpen]);
+  // Body scroll lock
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
-    if (!isOpen || !content) return null;
+  if (!isOpen || !content) return null;
 
-    return (
+  return (
+    <div
+      className="legal-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="legal-modal-title"
+    >
+      <div className="legal-modal__backdrop" onClick={onClose} />
+      <div className="legal-modal__content">
+        <header className="legal-modal__header">
+          <h2 id="legal-modal-title">{content.title}</h2>
+          <p className="legal-modal__updated">Last Updated: {content.lastUpdated}</p>
+          <button
+            className="legal-modal__close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            ✕
+          </button>
+        </header>
         <div
-            className="legal-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="legal-modal-title"
-        >
-            <div className="legal-modal__backdrop" onClick={onClose} />
-            <div className="legal-modal__content">
-                <header className="legal-modal__header">
-                    <h2 id="legal-modal-title">{content.title}</h2>
-                    <p className="legal-modal__updated">Last Updated: {content.lastUpdated}</p>
-                    <button
-                        className="legal-modal__close"
-                        onClick={onClose}
-                        aria-label="Close"
-                    >
-                        ✕
-                    </button>
-                </header>
-                <div
-                    className="legal-modal__body"
-                    dangerouslySetInnerHTML={{ __html: parseMarkdown(content.content) }}
-                />
-                <footer className="legal-modal__footer">
-                    <button className="btn btn-primary" onClick={onClose}>
-                        I Understand
-                    </button>
-                </footer>
-            </div>
+          className="legal-modal__body"
+          dangerouslySetInnerHTML={{ __html: parseMarkdown(content.content) }}
+        />
+        <footer className="legal-modal__footer">
+          <button className="btn btn-primary" onClick={onClose}>
+            I Understand
+          </button>
+        </footer>
+      </div>
 
-            <style>{`
+      <style>{`
         .legal-modal {
           position: fixed;
           inset: 0;
@@ -437,44 +438,44 @@ function LegalModal({ isOpen, onClose, pageType }) {
           text-align: center;
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 }
 
 /**
  * Simple markdown parser for legal content.
  */
 function parseMarkdown(text) {
-    return text
-        .replace(/^## (.*$)/gim, '<h2>$1</h2>')
-        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
-        .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
-        .replace(/^\- (.*$)/gim, '<li>$1</li>')
-        .replace(/(<li>.*<\/li>)/gims, '<ul>$1</ul>')
-        .replace(/<\/ul>\s*<ul>/gim, '')
-        .replace(/\n\n/g, '</p><p>')
-        .replace(/^(?!<[hlu])/gm, '<p>')
-        .replace(/(?<![>])$/gm, '</p>')
-        .replace(/<p><\/p>/g, '')
-        .replace(/<p>(<[hlu])/g, '$1')
-        .replace(/(<\/[hlu][l23]?>)<\/p>/g, '$1');
+  return text
+    .replace(/^## (.*$)/gim, '<h2>$1</h2>')
+    .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+    .replace(/\*\*(.*)\*\*/gim, '<strong>$1</strong>')
+    .replace(/^\- (.*$)/gim, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/gims, '<ul>$1</ul>')
+    .replace(/<\/ul>\s*<ul>/gim, '')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(?!<[hlu])/gm, '<p>')
+    .replace(/(?<![>])$/gm, '</p>')
+    .replace(/<p><\/p>/g, '')
+    .replace(/<p>(<[hlu])/g, '$1')
+    .replace(/(<\/[hlu][l23]?>)<\/p>/g, '$1');
 }
 
 /**
  * Legal Pages Provider/Context.
  */
 export function useLegalModal() {
-    const [modal, setModal] = useState({ isOpen: false, type: null });
+  const [modal, setModal] = useState({ isOpen: false, type: null });
 
-    const openLegal = useCallback((type) => {
-        setModal({ isOpen: true, type });
-    }, []);
+  const openLegal = useCallback((type) => {
+    setModal({ isOpen: true, type });
+  }, []);
 
-    const closeLegal = useCallback(() => {
-        setModal({ isOpen: false, type: null });
-    }, []);
+  const closeLegal = useCallback(() => {
+    setModal({ isOpen: false, type: null });
+  }, []);
 
-    return { modal, openLegal, closeLegal };
+  return { modal, openLegal, closeLegal };
 }
 
 export { LegalModal, LEGAL_CONTENT };

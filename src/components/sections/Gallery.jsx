@@ -1,74 +1,64 @@
 /**
- * @fileoverview Gallery Section with Masonry Grid and Lightbox.
- * Implements FR-6.1 through FR-6.6 from SRS Section 3.1.6.
- * Features category filters, lazy loading, and keyboard navigation.
- * @version 3.0.0
+ * @fileoverview Refined Photo Gallery Section with WhatsApp-style Lightbox.
+ * Features a compact initial grid to minimize scrolling and a high-end
+ * full-screen viewer with swipe support and a thumbnail navigation bar.
+ * @version 4.0.0
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-
+import {
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Maximize2,
+  Image as ImageIcon,
+  LayoutGrid
+} from 'lucide-react';
 import { GALLERY_IMAGES } from '../../data/content';
 
-/**
- * Gallery categories.
- * @type {Array<Object>}
- */
 const CATEGORIES = [
-  { id: 'all', label: 'All' },
-  { id: 'rooms', label: 'Rooms' },
-  { id: 'dining', label: 'Dining' },
-  { id: 'spa', label: 'Spa' },
-  { id: 'events', label: 'Events' },
-  { id: 'exterior', label: 'Exterior' },
+  { id: 'all', label: 'All Photos' },
+  { id: 'rooms', label: 'Suites & Rooms' },
+  { id: 'dining', label: 'Dining & Cuisine' },
+  { id: 'exterior', label: 'Exterior & Architecture' },
+  { id: 'events', label: 'Events & Meetings' },
 ];
 
-/**
- * Gallery section component.
- * 
- * Features (per SRS Section 3.1.6):
- * - FR-6.1: Masonry/grid layout for photos
- * - FR-6.2: Lightbox functionality for full-size viewing
- * - FR-6.3: Categories: Rooms, Dining, Spa, Events, Exterior
- * - FR-6.4: Lazy loading for images
- * - FR-6.5: 30+ high-resolution images
- * - FR-6.6: Navigation arrows in lightbox
- * 
- * @component
- * @returns {React.ReactElement} Gallery section element
- */
-function Gallery() {
-  // Active category filter - FR-6.3
-  const [activeCategory, setActiveCategory] = useState('all');
+const INITIAL_VISIBLE_COUNT = 8;
 
-  // Lightbox state - FR-6.2
+function Gallery() {
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [showAll, setShowAll] = useState(false);
   const [lightbox, setLightbox] = useState({
     isOpen: false,
     currentIndex: 0,
   });
 
-  // Filtered images
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+  const thumbsRef = useRef(null);
+  const lightboxRef = useRef(null);
+
+  // Filter images based on category
   const filteredImages = activeCategory === 'all'
     ? GALLERY_IMAGES
     : GALLERY_IMAGES.filter((img) => img.category === activeCategory);
 
-  // Refs
-  const lightboxRef = useRef(null);
+  const visibleImages = showAll ? filteredImages : filteredImages.slice(0, INITIAL_VISIBLE_COUNT);
 
-  // Open lightbox
+  // --- Handlers ---
   const openLightbox = useCallback((index) => {
     setLightbox({ isOpen: true, currentIndex: index });
     document.body.style.overflow = 'hidden';
   }, []);
 
-  // Close lightbox
   const closeLightbox = useCallback(() => {
-    setLightbox((prev) => ({ ...prev, isOpen: false }));
+    setLightbox(prev => ({ ...prev, isOpen: false }));
     document.body.style.overflow = '';
   }, []);
 
-  // Navigate lightbox - FR-6.6
   const navigateLightbox = useCallback((direction) => {
-    setLightbox((prev) => {
+    setLightbox(prev => {
       const total = filteredImages.length;
       let newIndex = prev.currentIndex + direction;
       if (newIndex < 0) newIndex = total - 1;
@@ -77,66 +67,80 @@ function Gallery() {
     });
   }, [filteredImages.length]);
 
-  // Keyboard navigation - FR-6.2
+  const goToSlide = (index) => {
+    setLightbox(prev => ({ ...prev, currentIndex: index }));
+  };
+
+  // --- Swipe Logic ---
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) navigateLightbox(1);
+      else navigateLightbox(-1);
+    }
+  };
+
+  // --- Effects ---
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!lightbox.isOpen) return;
-      switch (e.key) {
-        case 'Escape':
-          closeLightbox();
-          break;
-        case 'ArrowLeft':
-          navigateLightbox(-1);
-          break;
-        case 'ArrowRight':
-          navigateLightbox(1);
-          break;
-        default:
-          break;
-      }
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') navigateLightbox(-1);
+      if (e.key === 'ArrowRight') navigateLightbox(1);
     };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [lightbox.isOpen, closeLightbox, navigateLightbox]);
 
-  // Focus trap in lightbox
+  // Scroll active thumbnail into view locally (without page jump)
   useEffect(() => {
-    if (lightbox.isOpen && lightboxRef.current) {
-      lightboxRef.current.focus();
+    const container = thumbsRef.current;
+    if (lightbox.isOpen && container) {
+      const activeThumb = container.querySelector('.gallery__thumb--active');
+      if (activeThumb) {
+        const scrollLeft = activeThumb.offsetLeft - (container.offsetWidth / 2) + (activeThumb.offsetWidth / 2);
+        container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+      }
     }
-  }, [lightbox.isOpen]);
+  }, [lightbox.currentIndex, lightbox.isOpen]);
+
+  const currentImage = filteredImages[lightbox.currentIndex];
 
   return (
-    <section
-      id="gallery"
-      className="gallery section"
-      aria-labelledby="gallery-title"
-    >
+    <section id="gallery" className="gallery section">
       <div className="container">
         {/* Section Header */}
         <header className="section-header text-center">
-          <h2 id="gallery-title" className="section-title">
-            Photo <span className="text-gold">Gallery</span>
+          <span className="accent-text text-gold">Visual Journey</span>
+          <h2 className="section-title">
+            The <span className="text-gold">Andalusian</span> Gallery
           </h2>
           <div className="divider-gold" aria-hidden="true" />
           <p className="section-subtitle">
-            Explore the timeless beauty and elegant spaces of Andalusian Castle
-            through our curated collection.
+            A boutique collection of our elegant spaces and architectural details,
+            crafted for those with a taste for refinement.
           </p>
         </header>
 
-        {/* Category Filter Tabs - FR-6.3 */}
-        <nav className="gallery__filters" aria-label="Gallery category filter">
-          <ul className="gallery__filter-list" role="tablist">
-            {CATEGORIES.map((cat) => (
-              <li key={cat.id} role="presentation">
+        {/* Categories Bar */}
+        <nav className="gallery__nav">
+          <ul className="gallery__filters">
+            {CATEGORIES.map(cat => (
+              <li key={cat.id}>
                 <button
-                  className={`gallery__filter-btn ${activeCategory === cat.id ? 'gallery__filter-btn--active' : ''}`}
-                  onClick={() => setActiveCategory(cat.id)}
-                  role="tab"
-                  aria-selected={activeCategory === cat.id}
-                  aria-controls="gallery-grid"
+                  className={`gallery__filter-btn ${activeCategory === cat.id ? 'active' : ''}`}
+                  onClick={() => {
+                    setActiveCategory(cat.id);
+                    setShowAll(false);
+                  }}
                 >
                   {cat.label}
                 </button>
@@ -145,370 +149,409 @@ function Gallery() {
           </ul>
         </nav>
 
-        {/* Masonry Grid - FR-6.1 */}
-        <div
-          id="gallery-grid"
-          className="gallery__grid"
-          role="tabpanel"
-          aria-label={`${CATEGORIES.find(c => c.id === activeCategory)?.label} photos`}
-        >
-          {filteredImages.map((image, index) => (
-            <button
+        {/* Compact Grid */}
+        <div className="gallery__grid">
+          {visibleImages.map((image, index) => (
+            <figure
               key={image.id}
               className="gallery__item"
               onClick={() => openLightbox(index)}
-              aria-label={`View ${image.alt}`}
-              type="button"
             >
-              {/* Lazy loaded image - FR-6.4 */}
               <img
-                src={image.src}
+                src={process.env.PUBLIC_URL + image.src}
                 alt={image.alt}
                 loading="lazy"
-                decoding="async"
               />
-              <div className="gallery__item-overlay">
-                <span className="gallery__item-icon" aria-hidden="true">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="11" cy="11" r="8" />
-                    <path d="M21 21l-4.35-4.35" />
-                    <path d="M11 8v6M8 11h6" />
-                  </svg>
-                </span>
+              <div className="gallery__overlay">
+                <Maximize2 size={24} className="gallery__zoom-icon" />
+                <span className="gallery__overlay-text">View Full Size</span>
               </div>
-            </button>
+            </figure>
           ))}
         </div>
+
+        {/* View All Button */}
+        {!showAll && filteredImages.length > INITIAL_VISIBLE_COUNT && (
+          <div className="gallery__actions">
+            <button
+              className="gallery__view-all-btn"
+              onClick={() => setShowAll(true)}
+            >
+              <LayoutGrid size={20} /> Explore All {filteredImages.length} Photos
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Lightbox Modal - FR-6.2 */}
+      {/* WhatsApp Style Lightbox */}
       {lightbox.isOpen && (
         <div
-          ref={lightboxRef}
           className="gallery__lightbox"
           role="dialog"
           aria-modal="true"
-          aria-label="Image lightbox"
-          tabIndex={-1}
         >
-          <div className="gallery__lightbox-backdrop" onClick={closeLightbox} />
-
-          {/* Close Button */}
-          <button
-            className="gallery__lightbox-close"
-            onClick={closeLightbox}
-            aria-label="Close gallery (Escape)"
-          >
-            ✕
-          </button>
-
-          {/* Previous Arrow - FR-6.6 */}
-          <button
-            className="gallery__lightbox-nav gallery__lightbox-nav--prev"
-            onClick={() => navigateLightbox(-1)}
-            aria-label="Previous image (Left arrow)"
-          >
-            ‹
-          </button>
-
-          {/* Current Image */}
-          <figure className="gallery__lightbox-content">
-            <img
-              src={filteredImages[lightbox.currentIndex]?.src}
-              alt={filteredImages[lightbox.currentIndex]?.alt}
-            />
-            <figcaption className="gallery__lightbox-caption">
-              <span className="gallery__lightbox-alt">
-                {filteredImages[lightbox.currentIndex]?.alt}
-              </span>
-              <span className="gallery__lightbox-counter">
+          {/* Top Bar */}
+          <div className="gallery__lightbox-top">
+            <div className="gallery__info">
+              <span className="gallery__counter">
                 {lightbox.currentIndex + 1} / {filteredImages.length}
               </span>
-            </figcaption>
-          </figure>
+            </div>
+            <button className="gallery__close-btn" onClick={closeLightbox}>
+              <X size={28} />
+            </button>
+          </div>
 
-          {/* Next Arrow - FR-6.6 */}
-          <button
-            className="gallery__lightbox-nav gallery__lightbox-nav--next"
-            onClick={() => navigateLightbox(1)}
-            aria-label="Next image (Right arrow)"
+          {/* Main Content Area */}
+          <div
+            className="gallery__lightbox-center"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
-            ›
-          </button>
+            <button className="gallery__lb-nav gallery__lb-nav--prev" onClick={() => navigateLightbox(-1)}>
+              <ChevronLeft size={36} />
+            </button>
+
+            <div className="gallery__main-image-wrapper">
+              {currentImage && (
+                <img
+                  src={process.env.PUBLIC_URL + currentImage.src}
+                  alt={currentImage.alt}
+                  className="gallery__main-image"
+                />
+              )}
+            </div>
+
+            <button className="gallery__lb-nav gallery__lb-nav--next" onClick={() => navigateLightbox(1)}>
+              <ChevronRight size={36} />
+            </button>
+          </div>
+
+          {/* Bottom Thumbnails Strip */}
+          <div className="gallery__lightbox-bottom">
+            <div className="gallery__thumbs-container" ref={thumbsRef}>
+              {filteredImages.map((img, idx) => (
+                <button
+                  key={img.id}
+                  className={`gallery__thumb ${idx === lightbox.currentIndex ? 'gallery__thumb--active' : ''}`}
+                  onClick={() => goToSlide(idx)}
+                >
+                  <img src={process.env.PUBLIC_URL + img.src} alt="" />
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Gallery Styles */}
       <style>{`
         .gallery {
-          background-color: var(--cream-light);
+          background: #fafafa;
+          position: relative;
         }
 
-        /* Category Filters - FR-6.3 */
+        .gallery__nav {
+          margin-bottom: var(--space-4);
+          overflow-x: auto;
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+          padding: 25px 10px;
+        }
+
+        .gallery__nav::-webkit-scrollbar { display: none; }
+
         .gallery__filters {
-          margin-bottom: var(--space-10);
-        }
-
-        .gallery__filter-list {
           display: flex;
-          flex-wrap: wrap;
           justify-content: center;
-          gap: var(--space-2);
+          gap: var(--space-3);
           list-style: none;
           padding: 0;
-          margin: 0;
+          min-width: max-content;
+          margin: 0 auto;
         }
 
         .gallery__filter-btn {
-          background: transparent;
-          border: 1px solid var(--luxe-gold);
-          color: var(--charcoal-deep);
-          font-family: var(--font-secondary);
-          font-size: var(--text-sm);
-          font-weight: var(--font-weight-montserrat-medium);
-          text-transform: uppercase;
-          letter-spacing: var(--tracking-wide);
-          padding: var(--space-2) var(--space-5);
+          padding: 10px 24px;
           border-radius: var(--radius-full);
+          border: 1px solid #e2e2e2;
+          background: white;
+          color: var(--charcoal-dark);
+          font-weight: 600;
+          font-size: 0.9rem;
           cursor: pointer;
-          transition: all 0.3s ease;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          white-space: nowrap;
         }
 
-        .gallery__filter-btn:hover,
-        .gallery__filter-btn--active {
-          background: var(--gradient-gold);
-          color: var(--pure-white);
-          border-color: transparent;
+        .gallery__filter-btn:hover {
+          border-color: var(--luxe-gold);
+          color: var(--luxe-gold);
+          transform: translateY(-2px);
         }
 
-        .gallery__filter-btn:focus-visible {
-          outline: 2px solid var(--luxe-gold);
-          outline-offset: 3px;
+        .gallery__filter-btn.active {
+          background: var(--luxe-gold);
+          color: white;
+          border-color: var(--luxe-gold);
+          box-shadow: 0 8px 20px rgba(212, 175, 55, 0.3);
+          transform: translateY(-1px);
         }
 
-        /* Masonry Grid - FR-6.1 */
+        /* Responsive Grid */
         .gallery__grid {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
           gap: var(--space-4);
+          animation: fadeIn 0.8s ease backwards;
         }
 
-        @media (min-width: 640px) {
+        @media (min-width: 768px) {
           .gallery__grid {
             grid-template-columns: repeat(3, 1fr);
+            gap: var(--space-5);
           }
         }
 
         @media (min-width: 1024px) {
           .gallery__grid {
             grid-template-columns: repeat(4, 1fr);
-            gap: var(--space-5);
-          }
-
-          /* Masonry effect with varying heights */
-          .gallery__item:nth-child(4n+1) { grid-row: span 2; }
-          .gallery__item:nth-child(6n+3) { grid-row: span 2; }
-        }
-
-        @media (min-width: 1280px) {
-          .gallery__grid {
-            grid-template-columns: repeat(5, 1fr);
           }
         }
 
-        /* Gallery Item */
         .gallery__item {
           position: relative;
+          aspect-ratio: 1;
+          border-radius: var(--radius-lg);
           overflow: hidden;
-          border-radius: var(--radius-md);
-          border: 1px solid transparent;
           cursor: pointer;
-          background: none;
-          padding: 0;
-          aspect-ratio: 1 / 1;
-          transition: border-color 0.3s ease, transform 0.3s ease;
+          background: #eee;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+          transition: transform 0.4s ease, box-shadow 0.4s ease;
+          margin: 0;
         }
 
         .gallery__item:hover {
-          border-color: var(--luxe-gold);
-          transform: scale(1.02);
-        }
-
-        .gallery__item:focus-visible {
-          outline: 2px solid var(--luxe-gold);
-          outline-offset: 3px;
+          transform: translateY(-5px) scale(1.02);
+          box-shadow: 0 20px 30px rgba(0,0,0,0.1);
+          z-index: 2;
         }
 
         .gallery__item img {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          transition: transform 0.5s ease;
+          transition: transform 0.6s ease;
         }
 
-        .gallery__item:hover img {
-          transform: scale(1.1);
-        }
-
-        .gallery__item-overlay {
+        .gallery__overlay {
           position: absolute;
           inset: 0;
-          background: rgba(26, 26, 26, 0.5);
+          background: rgba(0,0,0,0.4);
+          color: white;
           display: flex;
+          flex-direction: column;
           align-items: center;
           justify-content: center;
           opacity: 0;
           transition: opacity 0.3s ease;
+          backdrop-filter: blur(4px);
         }
 
-        .gallery__item:hover .gallery__item-overlay {
-          opacity: 1;
+        .gallery__item:hover .gallery__overlay { opacity: 1; }
+        .gallery__item:hover img { transform: scale(1.1); }
+
+        .gallery__overlay-text {
+          font-size: 0.8rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          margin-top: 10px;
+          letter-spacing: 1px;
         }
 
-        .gallery__item-icon {
-          color: var(--pure-white);
-          background: var(--luxe-gold);
-          width: 48px;
-          height: 48px;
-          border-radius: 50%;
-          display: flex;
+        .gallery__actions {
+          margin-top: var(--space-12);
+          text-align: center;
+        }
+
+        .gallery__view-all-btn {
+          display: inline-flex;
           align-items: center;
-          justify-content: center;
-          transform: scale(0.8);
-          transition: transform 0.3s ease;
+          gap: 12px;
+          padding: 16px 32px;
+          background: white;
+          border: 1px solid var(--luxe-gold);
+          color: var(--luxe-gold);
+          border-radius: var(--radius-full);
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 4px 15px rgba(212, 175, 55, 0.1);
         }
 
-        .gallery__item:hover .gallery__item-icon {
-          transform: scale(1);
+        .gallery__view-all-btn:hover {
+          background: var(--luxe-gold);
+          color: white;
+          box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3);
+          transform: translateY(-2px);
         }
 
-        /* Lightbox Modal - FR-6.2 */
+        /* WhatsApp Style Lightbox */
         .gallery__lightbox {
           position: fixed;
           inset: 0;
-          z-index: var(--z-modal);
+          background: #000;
+          z-index: 9999;
           display: flex;
-          align-items: center;
-          justify-content: center;
-          outline: none;
+          flex-direction: column;
         }
 
-        .gallery__lightbox-backdrop {
-          position: absolute;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.95);
-        }
-
-        .gallery__lightbox-close {
-          position: absolute;
-          top: var(--space-6);
-          right: var(--space-6);
-          background: transparent;
-          border: 2px solid var(--cream-elegant);
-          color: var(--cream-elegant);
-          font-size: var(--text-xl);
-          width: 48px;
-          height: 48px;
-          border-radius: 50%;
-          cursor: pointer;
-          z-index: 10;
-          transition: all 0.3s ease;
-        }
-
-        .gallery__lightbox-close:hover {
-          background: var(--luxe-gold);
-          border-color: var(--luxe-gold);
-          color: var(--charcoal-darker);
-        }
-
-        .gallery__lightbox-close:focus-visible {
-          outline: 2px solid var(--luxe-gold);
-          outline-offset: 4px;
-        }
-
-        .gallery__lightbox-nav {
-          position: absolute;
-          top: 50%;
-          transform: translateY(-50%);
-          background: rgba(255, 255, 255, 0.1);
-          border: none;
-          color: var(--pure-white);
-          font-size: 3rem;
-          width: 60px;
-          height: 80px;
-          border-radius: var(--radius-md);
-          cursor: pointer;
-          z-index: 10;
-          transition: all 0.3s ease;
-        }
-
-        .gallery__lightbox-nav:hover {
-          background: var(--luxe-gold);
-          color: var(--charcoal-darker);
-        }
-
-        .gallery__lightbox-nav:focus-visible {
-          outline: 2px solid var(--luxe-gold);
-          outline-offset: 4px;
-        }
-
-        .gallery__lightbox-nav--prev {
-          left: var(--space-4);
-        }
-
-        .gallery__lightbox-nav--next {
-          right: var(--space-4);
-        }
-
-        .gallery__lightbox-content {
-          position: relative;
-          max-width: 85vw;
-          max-height: 80vh;
-          z-index: 5;
-          margin: 0;
-        }
-
-        .gallery__lightbox-content img {
-          max-width: 100%;
-          max-height: 75vh;
-          object-fit: contain;
-          border-radius: var(--radius-lg);
-          box-shadow: var(--shadow-2xl);
-        }
-
-        .gallery__lightbox-caption {
+        .gallery__lightbox-top {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          padding: var(--space-4) 0;
+          padding: var(--space-6) var(--space-8);
+          background: rgba(0,0,0,0.9);
+          color: white;
+          z-index: 20;
+          border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
-        .gallery__lightbox-alt {
-          color: var(--cream-elegant);
-          font-size: var(--text-sm);
+        .gallery__info {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
         }
 
-        .gallery__lightbox-counter {
+        .gallery__counter {
+          font-size: 0.85rem;
+          opacity: 0.7;
+          font-weight: 600;
           color: var(--luxe-gold);
-          font-weight: var(--font-weight-montserrat-semibold);
         }
 
-        @media (max-width: 767px) {
-          .gallery__lightbox-nav {
-            width: 44px;
-            height: 60px;
-            font-size: 2rem;
-          }
+        .gallery__image-name {
+          font-size: 1.25rem;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          font-family: var(--font-primary);
         }
 
-        @media (prefers-reduced-motion: reduce) {
-          .gallery__item,
-          .gallery__item img,
-          .gallery__item-overlay,
-          .gallery__item-icon {
-            transition: none;
-          }
+        .gallery__close-btn {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: white;
+          border-radius: 50%;
+          cursor: pointer;
+          width: 44px;
+          height: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s ease;
         }
+        .gallery__close-btn:hover { background: var(--luxe-gold); color: white; transform: rotate(90deg); border-color: var(--luxe-gold); }
+
+        .gallery__lightbox-center {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          overflow: hidden;
+          background: #050505;
+        }
+
+        .gallery__main-image-wrapper {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: var(--space-4);
+          z-index: 5;
+        }
+
+        .gallery__main-image {
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
+          box-shadow: 0 0 100px rgba(0,0,0,1);
+          border-radius: var(--radius-sm);
+          z-index: 10;
+          position: relative;
+        }
+
+        .gallery__lb-nav {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          background: rgba(0, 0, 0, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: white;
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          z-index: 30;
+          backdrop-filter: blur(10px);
+        }
+
+        .gallery__lb-nav:hover { background: var(--luxe-gold); border-color: var(--luxe-gold); }
+        .gallery__lb-nav--prev { left: var(--space-6); }
+        .gallery__lb-nav--next { right: var(--space-6); }
+
+        @media (max-width: 768px) {
+          .gallery__lb-nav { display: none; }
+        }
+
+        /* Thumbstrip */
+        .gallery__lightbox-bottom {
+          padding: var(--space-6) 0;
+          background: rgba(0,0,0,0.9);
+          border-top: 1px solid rgba(255,255,255,0.1);
+          z-index: 20;
+        }
+
+        .gallery__thumbs-container {
+          display: flex;
+          gap: 12px;
+          padding: 0 var(--space-8);
+          overflow-x: auto;
+          scrollbar-width: none;
+          justify-content: flex-start;
+          width: max-content;
+          margin: 0 auto;
+          max-width: 90vw;
+        }
+
+        .gallery__thumbs-container::-webkit-scrollbar { display: none; }
+
+        .gallery__thumb {
+          width: 60px;
+          height: 60px;
+          flex-shrink: 0;
+          border-radius: var(--radius-sm);
+          overflow: hidden;
+          background: #333;
+          border: 2px solid transparent;
+          cursor: pointer;
+          opacity: 0.5;
+          padding: 0;
+          transition: all 0.3s ease;
+        }
+
+        .gallery__thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .gallery__thumb--active {
+          opacity: 1;
+          border-color: var(--luxe-gold);
+          transform: scale(1.1);
+        }
+
       `}</style>
     </section>
   );

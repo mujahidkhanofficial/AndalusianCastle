@@ -48,7 +48,7 @@ const NAV_ITEMS = [
 function Navigation({
   logoText = 'Andalusian Castle',
   ctaText = 'Book Now',
-  ctaHref = '#contact',
+  ctaHref = 'https://wa.me/923166268625',
   scrollThreshold = 100,
 }) {
   // Scroll state for nav appearance - FR-2.1, FR-2.7
@@ -125,6 +125,12 @@ function Navigation({
 
   // Handle smooth scroll to section - FR-2.2
   const handleNavClick = useCallback((e, href) => {
+    if (href.startsWith('http')) {
+      // Allow external links (WhatsApp, etc.) to function normally
+      setIsMobileMenuOpen(false);
+      return;
+    }
+
     e.preventDefault();
     const targetId = href.replace('#', '');
     const element = document.getElementById(targetId);
@@ -227,7 +233,7 @@ function Navigation({
             aria-label={`${logoText} - Go to homepage`}
           >
             <img
-              src="/images/logo.png"
+              src={process.env.PUBLIC_URL + "/images/logo.png"}
               alt={logoText}
               className="nav__logo-img"
             />
@@ -259,6 +265,8 @@ function Navigation({
             href={ctaHref}
             className="nav__cta btn btn-primary"
             onClick={(e) => handleNavClick(e, ctaHref)}
+            target={ctaHref.startsWith('http') ? "_blank" : undefined}
+            rel={ctaHref.startsWith('http') ? "noopener noreferrer" : undefined}
           >
             {ctaText}
           </a>

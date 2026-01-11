@@ -1,51 +1,24 @@
 /**
  * @fileoverview Location & Contact Section with Map and Validated Form.
  * Implements FR-9.1 through FR-9.8 from SRS Section 3.1.9.
- * Features embedded map, contact details, and form validation.
- * @version 3.0.0
+ * Features embedded map and contact form with validation.
+ * @version 4.0.0
  */
 
 import React, { useState, useCallback } from 'react';
+import {
+    Mail,
+    Phone,
+    MessageSquare,
+    User,
+    Send,
+    Tag,
+    MapPin
+} from 'lucide-react';
+import emailjs from '@emailjs/browser';
 
 /**
- * Contact information.
- * @type {Object}
- */
-const CONTACT_INFO = {
-    address: 'Plaza 100, Nishtar Block, Sector E',
-    city: 'Bahria Town, Lahore',
-    postalCode: 'Punjab, Pakistan',
-    country: '',
-    phone: '+92 316 6268625',
-    email: 'AndalusianCastleSuite@gmail.com',
-    mapUrl: 'https://maps.google.com/?q=Plaza+100+Nishtar+Block+Bahria+Town+Lahore',
-};
-
-/**
- * Nearby attractions with distances.
- * @type {Array<Object>}
- */
-const NEARBY_ATTRACTIONS = [
-    { name: 'Allama Iqbal International Airport', distance: '15 km', time: '35 min', icon: '✈️' },
-    { name: 'Lahore Fort & Walled City', distance: '8 km', time: '25 min', icon: '🏛️' },
-    { name: 'DHA Lahore', distance: '5 km', time: '10 min', icon: '🏙️' },
-    { name: 'Eiffel Tower Replica', distance: '2 km', time: '5 min', icon: '🗼' },
-    { name: 'Grand Jamia Mosque', distance: '3 km', time: '8 min', icon: '🕌' },
-];
-
-/**
- * Social media links.
- * @type {Array<Object>}
- */
-const SOCIAL_LINKS = [
-    { name: 'Facebook', url: 'https://facebook.com/andalusiancastle', icon: 'FB' },
-    { name: 'Instagram', url: 'https://instagram.com/andalusiancastle', icon: 'IG' },
-    { name: 'Twitter', url: 'https://twitter.com/andalusiancastle', icon: 'TW' },
-    { name: 'LinkedIn', url: 'https://linkedin.com/company/andalusiancastle', icon: 'LI' },
-];
-
-/**
- * Sanitize input string.
+ * Form Sanitization.
  * @param {string} input - Raw input
  * @returns {string} Sanitized input
  */
@@ -97,13 +70,9 @@ const validators = {
  * 
  * Features (per SRS Section 3.1.9):
  * - FR-9.1: Embedded interactive map
- * - FR-9.2: Full address with directions link
- * - FR-9.3: Contact phone and email
- * - FR-9.4: Social media links
  * - FR-9.5: Contact form with validation
  * - FR-9.6: Form field validation
  * - FR-9.7: Success/error messages
- * - FR-9.8: Distance to airport/attractions
  * 
  * @component
  * @returns {React.ReactElement} Location section element
@@ -187,16 +156,34 @@ function Location() {
         };
 
         try {
-            // Simulate API call (replace with EmailJS/Formspree)
-            await new Promise((resolve) => setTimeout(resolve, 1500));
+            const SERVICE_ID = 'service_jrzd6x9';
+            const TEMPLATE_ID = 'template_1jsut4j';
+            const PUBLIC_KEY = 'a9XK2OYIo0rXz_YcR';
 
-            // Mock success (in production, use EmailJS or Formspree)
-            console.log('Form submitted:', sanitizedData);
+            const templateParams = {
+                from_name: sanitizedData.name,
+                from_email: sanitizedData.email,
+                phone_number: sanitizedData.phone,
+                subject: sanitizedData.subject,
+                message: sanitizedData.message,
+                to_name: 'Andalusian Castle Admin',
+            };
 
-            setSubmitStatus('success');
-            setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
-            setTouched({});
-            setErrors({});
+            const response = await emailjs.send(
+                SERVICE_ID,
+                TEMPLATE_ID,
+                templateParams,
+                PUBLIC_KEY
+            );
+
+            if (response.status === 200) {
+                setSubmitStatus('success');
+                setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+                setTouched({});
+                setErrors({});
+            } else {
+                throw new Error('Failed to send message');
+            }
         } catch (error) {
             console.error('Submission error:', error);
             setSubmitStatus('error');
@@ -215,114 +202,36 @@ function Location() {
                 {/* Section Header */}
                 <header className="section-header text-center">
                     <h2 id="location-title" className="section-title">
-                        Location & <span className="text-gold">Contact</span>
+                        Get in <span className="text-gold">Touch</span>
                     </h2>
                     <div className="divider-gold" aria-hidden="true" />
                     <p className="section-subtitle">
-                        We look forward to welcoming you. Reach out to plan your perfect stay.
+                        Have questions? Our team is here to help you plan your perfect stay.
                     </p>
                 </header>
 
                 <div className="location__grid">
-                    {/* Left Column: Map & Info */}
-                    <div className="location__info">
-                        {/* Embedded Map - FR-9.1 */}
+                    {/* Left Column: Map Only */}
+                    <div className="location__map-container">
                         <div className="location__map">
                             <iframe
                                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d13620.597148816828!2d74.1814722!3d31.3623889!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzHCsDIxJzQ0LjYiTiA3NMKwMTAnNTMuMyJF!5e0!3m2!1sen!2spk!4v1"
                                 width="100%"
-                                height="300"
-                                style={{ border: 0, filter: 'sepia(30%) saturate(80%) hue-rotate(10deg)' }}
+                                height="400"
+                                style={{ border: 0, filter: 'sepia(20%) saturate(90%)' }}
                                 allowFullScreen=""
                                 loading="lazy"
                                 referrerPolicy="no-referrer-when-downgrade"
                                 title="Andalusian Castle location map"
                             />
                         </div>
-
-                        {/* Address - FR-9.2 */}
-                        <div className="location__address">
-                            <h3>Address</h3>
-                            <address>
-                                <p>{CONTACT_INFO.address}</p>
-                                <p>{CONTACT_INFO.city}</p>
-                                <p>{CONTACT_INFO.postalCode}, {CONTACT_INFO.country}</p>
-                            </address>
-                            <a
-                                href={CONTACT_INFO.mapUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="btn btn-secondary btn-sm"
-                                aria-label="Get directions to Andalusian Castle"
-                            >
-                                Get Directions
-                            </a>
-                        </div>
-
-                        {/* Contact Details - FR-9.3 */}
-                        <div className="location__contact-details">
-                            <h3>Contact</h3>
-                            <ul>
-                                <li>
-                                    <span className="location__icon" aria-hidden="true">📞</span>
-                                    <a href={`tel:${CONTACT_INFO.phone.replace(/\s/g, '')}`}>
-                                        {CONTACT_INFO.phone}
-                                    </a>
-                                </li>
-                                <li>
-                                    <span className="location__icon" aria-hidden="true">📱</span>
-                                    <a href={`https://wa.me/${CONTACT_INFO.phone.replace(/\+| /g, '')}`} target="_blank" rel="noopener noreferrer">
-                                        WhatsApp: {CONTACT_INFO.phone}
-                                    </a>
-                                </li>
-                                <li>
-                                    <span className="location__icon" aria-hidden="true">✉️</span>
-                                    <a href={`mailto:${CONTACT_INFO.email}`}>
-                                        {CONTACT_INFO.email}
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-
-                        {/* Social Links - FR-9.4 */}
-                        <div className="location__social">
-                            <h3>Follow Us</h3>
-                            <div className="location__social-links">
-                                {SOCIAL_LINKS.map((social) => (
-                                    <a
-                                        key={social.name}
-                                        href={social.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="location__social-link"
-                                        aria-label={`Follow us on ${social.name}`}
-                                    >
-                                        {social.icon}
-                                    </a>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Nearby Attractions - FR-9.8 */}
-                        <div className="location__attractions">
-                            <h3>Nearby</h3>
-                            <ul>
-                                {NEARBY_ATTRACTIONS.map((attraction) => (
-                                    <li key={attraction.name}>
-                                        <span className="location__attraction-icon" aria-hidden="true">
-                                            {attraction.icon}
-                                        </span>
-                                        <span className="location__attraction-name">{attraction.name}</span>
-                                        <span className="location__attraction-distance">
-                                            {attraction.distance} • {attraction.time}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
+                        <div className="location__map-info">
+                            <MapPin size={20} className="text-gold" />
+                            <p>Plaza 100, Nishtar Block, Sector E, Bahria Town, Lahore</p>
                         </div>
                     </div>
 
-                    {/* Right Column: Contact Form - FR-9.5, FR-9.6, FR-9.7 */}
+                    {/* Right Column: Contact Form */}
                     <div className="location__form-wrapper">
                         <h3 className="location__form-title">Send Us a Message</h3>
 
@@ -330,7 +239,6 @@ function Location() {
                         {submitStatus === 'success' && (
                             <div className="location__alert location__alert--success" role="alert">
                                 <strong>Thank you!</strong> Your message has been sent successfully.
-                                We'll respond within 24 hours.
                             </div>
                         )}
 
@@ -347,303 +255,222 @@ function Location() {
                             noValidate
                             aria-label="Contact form"
                         >
-                            {/* Name Field */}
-                            <div className={`form-group ${errors.name ? 'form-group--error' : ''}`}>
-                                <label htmlFor="contact-name">
-                                    Full Name <span aria-hidden="true">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    id="contact-name"
-                                    name="name"
-                                    value={formData.name}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    required
-                                    aria-required="true"
-                                    aria-invalid={!!errors.name}
-                                    aria-describedby={errors.name ? 'name-error' : undefined}
-                                    autoComplete="name"
-                                    placeholder="Your full name"
-                                />
-                                {errors.name && (
-                                    <span id="name-error" className="form-error" role="alert">
-                                        {errors.name}
-                                    </span>
-                                )}
+                            <div className="location__form-row">
+                                <div className={`form-group ${errors.name ? 'form-group--error' : ''}`}>
+                                    <label htmlFor="contact-name">Full Name <span>*</span></label>
+                                    <div className="form-input-wrapper">
+                                        <User className="form-input-icon" size={18} />
+                                        <input
+                                            type="text"
+                                            id="contact-name"
+                                            name="name"
+                                            value={formData.name}
+                                            onChange={handleChange}
+                                            onBlur={handleBlur}
+                                            required
+                                            placeholder="Your full name"
+                                        />
+                                    </div>
+                                    {errors.name && <span className="form-error">{errors.name}</span>}
+                                </div>
+
+                                <div className={`form-group ${errors.email ? 'form-group--error' : ''}`}>
+                                    <label htmlFor="contact-email">Email <span>*</span></label>
+                                    <div className="form-input-wrapper">
+                                        <Mail className="form-input-icon" size={18} />
+                                        <input
+                                            type="email"
+                                            id="contact-email"
+                                            name="email"
+                                            value={formData.email}
+                                            onChange={handleChange}
+                                            onBlur={handleBlur}
+                                            required
+                                            placeholder="your@email.com"
+                                        />
+                                    </div>
+                                    {errors.email && <span className="form-error">{errors.email}</span>}
+                                </div>
                             </div>
 
-                            {/* Email Field */}
-                            <div className={`form-group ${errors.email ? 'form-group--error' : ''}`}>
-                                <label htmlFor="contact-email">
-                                    Email Address <span aria-hidden="true">*</span>
-                                </label>
-                                <input
-                                    type="email"
-                                    id="contact-email"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    required
-                                    aria-required="true"
-                                    aria-invalid={!!errors.email}
-                                    aria-describedby={errors.email ? 'email-error' : undefined}
-                                    autoComplete="email"
-                                    placeholder="your@email.com"
-                                />
-                                {errors.email && (
-                                    <span id="email-error" className="form-error" role="alert">
-                                        {errors.email}
-                                    </span>
-                                )}
+                            <div className="location__form-row">
+                                <div className={`form-group ${errors.phone ? 'form-group--error' : ''}`}>
+                                    <label htmlFor="contact-phone">Phone Number</label>
+                                    <div className="form-input-wrapper">
+                                        <Phone className="form-input-icon" size={18} />
+                                        <input
+                                            type="tel"
+                                            id="contact-phone"
+                                            name="phone"
+                                            value={formData.phone}
+                                            onChange={handleChange}
+                                            onBlur={handleBlur}
+                                            placeholder="+92 3XX XXXXXXX"
+                                        />
+                                    </div>
+                                    {errors.phone && <span className="form-error">{errors.phone}</span>}
+                                </div>
+
+                                <div className={`form-group ${errors.subject ? 'form-group--error' : ''}`}>
+                                    <label htmlFor="contact-subject">Subject <span>*</span></label>
+                                    <div className="form-input-wrapper">
+                                        <Tag className="form-input-icon" size={18} />
+                                        <select
+                                            id="contact-subject"
+                                            name="subject"
+                                            value={formData.subject}
+                                            onChange={handleChange}
+                                            onBlur={handleBlur}
+                                            required
+                                        >
+                                            <option value="">Select a subject...</option>
+                                            <option value="reservation">Room Reservation</option>
+                                            <option value="event">Event Inquiry</option>
+                                            <option value="spa">Spa Booking</option>
+                                            <option value="dining">Dining Reservation</option>
+                                            <option value="feedback">Feedback</option>
+                                            <option value="other">Other</option>
+                                        </select>
+                                    </div>
+                                    {errors.subject && <span className="form-error">{errors.subject}</span>}
+                                </div>
                             </div>
 
-                            {/* Phone Field */}
-                            <div className={`form-group ${errors.phone ? 'form-group--error' : ''}`}>
-                                <label htmlFor="contact-phone">Phone Number</label>
-                                <input
-                                    type="tel"
-                                    id="contact-phone"
-                                    name="phone"
-                                    value={formData.phone}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    aria-invalid={!!errors.phone}
-                                    aria-describedby={errors.phone ? 'phone-error' : undefined}
-                                    autoComplete="tel"
-                                    placeholder="+92 3XX XXXXXXX"
-                                />
-                                {errors.phone && (
-                                    <span id="phone-error" className="form-error" role="alert">
-                                        {errors.phone}
-                                    </span>
-                                )}
-                            </div>
-
-                            {/* Subject Field */}
-                            <div className={`form-group ${errors.subject ? 'form-group--error' : ''}`}>
-                                <label htmlFor="contact-subject">
-                                    Subject <span aria-hidden="true">*</span>
-                                </label>
-                                <select
-                                    id="contact-subject"
-                                    name="subject"
-                                    value={formData.subject}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    required
-                                    aria-required="true"
-                                    aria-invalid={!!errors.subject}
-                                    aria-describedby={errors.subject ? 'subject-error' : undefined}
-                                >
-                                    <option value="">Select a subject...</option>
-                                    <option value="reservation">Room Reservation</option>
-                                    <option value="event">Event Inquiry</option>
-                                    <option value="spa">Spa Booking</option>
-                                    <option value="dining">Dining Reservation</option>
-                                    <option value="feedback">Feedback</option>
-                                    <option value="other">Other</option>
-                                </select>
-                                {errors.subject && (
-                                    <span id="subject-error" className="form-error" role="alert">
-                                        {errors.subject}
-                                    </span>
-                                )}
-                            </div>
-
-                            {/* Message Field */}
                             <div className={`form-group ${errors.message ? 'form-group--error' : ''}`}>
-                                <label htmlFor="contact-message">
-                                    Message <span aria-hidden="true">*</span>
-                                </label>
-                                <textarea
-                                    id="contact-message"
-                                    name="message"
-                                    rows="5"
-                                    value={formData.message}
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    required
-                                    aria-required="true"
-                                    aria-invalid={!!errors.message}
-                                    aria-describedby={errors.message ? 'message-error' : undefined}
-                                    placeholder="How can we help you?"
-                                />
-                                {errors.message && (
-                                    <span id="message-error" className="form-error" role="alert">
-                                        {errors.message}
-                                    </span>
-                                )}
-                                <span className="form-help">
-                                    {formData.message.length}/1000 characters
-                                </span>
+                                <label htmlFor="contact-message">Message <span>*</span></label>
+                                <div className="form-input-wrapper form-input-wrapper--textarea">
+                                    <MessageSquare className="form-input-icon" size={18} />
+                                    <textarea
+                                        id="contact-message"
+                                        name="message"
+                                        rows="4"
+                                        value={formData.message}
+                                        onChange={handleChange}
+                                        onBlur={handleBlur}
+                                        required
+                                        placeholder="How can we help you?"
+                                    />
+                                </div>
+                                <div className="form-footer">
+                                    {errors.message && <span className="form-error">{errors.message}</span>}
+                                    <span className="form-help">{formData.message.length}/1000</span>
+                                </div>
                             </div>
 
-                            {/* Submit Button */}
                             <button
                                 type="submit"
                                 className="btn btn-primary btn-lg location__submit"
                                 disabled={isSubmitting}
                             >
-                                {isSubmitting ? 'Sending...' : 'Send Message'}
+                                {isSubmitting ? 'Sending...' : (
+                                    <>
+                                        <Send size={18} style={{ marginRight: '8px' }} />
+                                        Send Message
+                                    </>
+                                )}
                             </button>
                         </form>
                     </div>
                 </div>
             </div>
 
-            {/* Location Styles */}
             <style>{`
         .location {
           background-color: var(--cream-light);
+          padding: var(--space-20) 0;
         }
 
         .location__grid {
           display: grid;
           grid-template-columns: 1fr;
           gap: var(--space-10);
+          max-width: 1200px;
+          margin: 0 auto;
         }
 
         @media (min-width: 1024px) {
           .location__grid {
-            grid-template-columns: 1fr 1fr;
-            gap: var(--space-12);
+            grid-template-columns: 0.9fr 1.1fr;
+            gap: var(--space-16);
+            align-items: start;
           }
         }
 
-        /* Map - FR-9.1 */
+        .location__map-container {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-4);
+        }
+
         .location__map {
           border-radius: var(--radius-lg);
           overflow: hidden;
-          border: 2px solid var(--luxe-gold);
-          margin-bottom: var(--space-6);
+          border: 1px solid rgba(212, 175, 55, 0.4);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+          height: 400px;
         }
 
-        /* Info Sections */
-        .location__info h3 {
-          font-family: var(--font-primary);
-          font-size: var(--text-lg);
-          color: var(--charcoal-darker);
-          margin-bottom: var(--space-3);
-          padding-bottom: var(--space-2);
-          border-bottom: 1px solid rgba(212, 175, 55, 0.3);
+        .location__map iframe {
+          width: 100%;
+          height: 100%;
+          border: 0;
         }
 
-        .location__address,
-        .location__contact-details,
-        .location__social,
-        .location__attractions {
-          margin-bottom: var(--space-6);
-        }
-
-        .location__address address {
-          font-style: normal;
+        .location__map-info {
+          display: flex;
+          align-items: center;
+          gap: var(--space-3);
           color: var(--charcoal-deep);
-          margin-bottom: var(--space-3);
+          font-weight: 500;
+          padding: var(--space-2) 10px;
+          background: rgba(212, 175, 55, 0.05);
+          border-radius: var(--radius-md);
         }
 
-        .location__contact-details ul,
-        .location__attractions ul {
-          list-style: none;
-          padding: 0;
+        .location__map-info p {
           margin: 0;
+          font-size: 0.95rem;
         }
 
-        .location__contact-details li {
-          display: flex;
-          align-items: center;
-          gap: var(--space-3);
-          padding: var(--space-2) 0;
-        }
-
-        .location__contact-details a {
-          color: var(--charcoal-deep);
-          transition: color var(--transition-fast);
-        }
-
-        .location__contact-details a:hover {
+        .text-gold {
           color: var(--luxe-gold);
         }
 
-        .location__icon {
-          font-size: 1.25rem;
-        }
-
-        /* Social Links - FR-9.4 */
-        .location__social-links {
-          display: flex;
-          gap: var(--space-3);
-        }
-
-        .location__social-link {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 44px;
-          height: 44px;
-          background: var(--charcoal-darker);
-          color: var(--pure-white);
-          border-radius: 50%;
-          font-size: var(--text-sm);
-          font-weight: var(--font-weight-montserrat-semibold);
-          transition: all 0.3s ease;
-        }
-
-        .location__social-link:hover {
-          background: var(--luxe-gold);
-          color: var(--charcoal-darker);
-          transform: translateY(-3px);
-        }
-
-        .location__social-link:focus-visible {
-          outline: 2px solid var(--luxe-gold);
-          outline-offset: 3px;
-        }
-
-        /* Attractions - FR-9.8 */
-        .location__attractions li {
-          display: flex;
-          align-items: center;
-          gap: var(--space-3);
-          padding: var(--space-2) 0;
-          border-bottom: 1px solid rgba(212, 175, 55, 0.1);
-        }
-
-        .location__attraction-icon {
-          font-size: 1.25rem;
-          width: 32px;
-        }
-
-        .location__attraction-name {
-          flex: 1;
-          color: var(--charcoal-deep);
-        }
-
-        .location__attraction-distance {
-          font-size: var(--text-sm);
-          color: var(--luxe-gold);
-          font-weight: var(--font-weight-montserrat-medium);
-        }
-
-        /* Form Wrapper */
         .location__form-wrapper {
-          background: var(--pure-white);
-          border: 1px solid rgba(212, 175, 55, 0.3);
-          border-radius: var(--radius-lg);
-          padding: var(--space-8);
-          box-shadow: var(--shadow-lg);
+          background: #ffffff;
+          border: 1px solid rgba(212, 175, 55, 0.2);
+          border-radius: var(--radius-xl);
+          padding: clamp(var(--space-6), 5vw, var(--space-10));
+          box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+        }
+
+        @media (min-width: 1024px) {
+          .location__form-wrapper {
+            position: sticky;
+            top: 120px;
+          }
         }
 
         .location__form-title {
           font-family: var(--font-primary);
-          font-size: var(--text-2xl);
+          font-size: var(--text-3xl);
           color: var(--charcoal-darker);
-          margin-bottom: var(--space-6);
+          margin-bottom: var(--space-8);
           text-align: center;
+          position: relative;
         }
 
-        /* Alerts - FR-9.7 */
+        .location__form-title::after {
+          content: '';
+          position: absolute;
+          bottom: -15px;
+          left: 50%;
+          transform: translateX(-50%);
+          width: 50px;
+          height: 2px;
+          background: var(--luxe-gold);
+        }
+
         .location__alert {
           padding: var(--space-4);
           border-radius: var(--radius-md);
@@ -662,80 +489,134 @@ function Location() {
           color: #991b1b;
         }
 
-        /* Form Groups - FR-9.6 */
+        .location__form-row {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 0 var(--space-4);
+        }
+
+        @media (min-width: 768px) {
+          .location__form-row {
+            grid-template-columns: repeat(2, 1fr);
+          }
+        }
+
         .form-group {
-          margin-bottom: var(--space-5);
+          margin-bottom: var(--space-3);
         }
 
         .form-group label {
           display: block;
-          font-weight: var(--font-weight-montserrat-medium);
+          font-size: 0.85rem;
+          font-weight: 700;
           color: var(--charcoal-deep);
-          margin-bottom: var(--space-2);
+          margin-bottom: var(--space-1);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
         }
 
         .form-group label span {
           color: var(--luxe-gold);
         }
 
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-          width: 100%;
-          padding: var(--space-3) var(--space-4);
-          font-family: var(--font-secondary);
-          font-size: var(--text-base);
-          color: var(--charcoal-darker);
-          background: var(--cream-light);
-          border: 2px solid transparent;
-          border-radius: var(--radius-md);
-          transition: all 0.3s ease;
+        .form-input-wrapper {
+          position: relative;
+          display: flex;
+          align-items: center;
         }
 
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
+        .form-input-icon {
+          position: absolute;
+          left: 14px;
+          color: var(--luxe-gold);
+          opacity: 0.8;
+          pointer-events: none;
+          transition: transform 0.3s ease;
+        }
+
+        .form-input-wrapper input,
+        .form-input-wrapper select,
+        .form-input-wrapper textarea {
+          width: 100%;
+          padding: 12px 14px 12px 42px;
+          font-family: var(--font-secondary);
+          font-size: 0.95rem;
+          line-height: normal;
+          color: var(--charcoal-darker);
+          background: #fff;
+          border: 1px solid rgba(0,0,0,0.1);
+          border-radius: var(--radius-md);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .form-input-wrapper--textarea {
+          align-items: flex-start;
+        }
+
+        .form-input-wrapper--textarea .form-input-icon {
+          top: 14px;
+        }
+
+        .form-input-wrapper textarea {
+          min-height: 100px;
+          resize: vertical;
+        }
+
+        .form-input-wrapper:focus-within .form-input-icon {
+          transform: scale(1.1);
+          opacity: 1;
+        }
+
+        .form-input-wrapper input:focus,
+        .form-input-wrapper select:focus,
+        .form-input-wrapper textarea:focus {
           outline: none;
           border-color: var(--luxe-gold);
-          box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2);
+          box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
         }
 
         .form-group--error input,
         .form-group--error select,
         .form-group--error textarea {
-          border-color: #ef4444;
+          border-color: #ff4d4d;
         }
 
         .form-error {
           display: block;
-          color: #ef4444;
-          font-size: var(--text-sm);
-          margin-top: var(--space-1);
+          color: #ff4d4d;
+          font-size: 0.75rem;
+          font-weight: 600;
+          margin-top: 4px;
+        }
+
+        .form-footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 4px;
         }
 
         .form-help {
-          display: block;
+          font-size: 0.7rem;
           color: var(--charcoal-deep);
-          font-size: var(--text-xs);
-          margin-top: var(--space-1);
-          opacity: 0.7;
-          text-align: right;
+          opacity: 0.6;
+          font-weight: 600;
         }
 
         .location__submit {
           width: 100%;
           margin-top: var(--space-4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 14px;
+          font-weight: 700;
+          text-transform: uppercase;
         }
 
         .location__submit:disabled {
           opacity: 0.7;
-          cursor: wait;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .location__social-link {
-            transition: none;
-          }
+          cursor: not-allowed;
         }
       `}</style>
         </section>

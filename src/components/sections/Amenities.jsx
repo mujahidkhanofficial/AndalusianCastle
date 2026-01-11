@@ -219,7 +219,7 @@ function Amenities() {
               {/* Tile Image - FR-4.4 */}
               <div className="amenities__tile-image">
                 <img
-                  src={amenity.image}
+                  src={process.env.PUBLIC_URL + amenity.image}
                   alt={amenity.name}
                   loading="lazy"
                   decoding="async"
@@ -257,8 +257,8 @@ function Amenities() {
         .amenities__grid {
           display: grid;
           grid-template-columns: 1fr;
-          gap: var(--space-6);
-          margin-bottom: var(--space-16);
+          gap: var(--space-5);
+          margin-bottom: var(--space-12);
         }
 
         @media (min-width: 640px) {
@@ -270,15 +270,14 @@ function Amenities() {
         @media (min-width: 1024px) {
           .amenities__grid {
             grid-template-columns: repeat(3, 1fr);
-            gap: var(--space-8);
+            gap: var(--space-6);
           }
         }
 
         @media (min-width: 1280px) {
           .amenities__grid {
-            grid-template-columns: repeat(3, 1fr);
-            max-width: 1200px;
-            margin: 0 auto var(--space-16);
+            max-width: 1100px;
+            margin: 0 auto var(--space-12);
           }
         }
 
@@ -286,31 +285,37 @@ function Amenities() {
         .amenities__tile {
           position: relative;
           background: var(--pure-white);
-          border: 1px solid rgba(212, 175, 55, 0.2);
+          border: 1px solid rgba(212, 175, 55, 0.15);
           border-radius: var(--radius-lg);
           overflow: hidden;
-          box-shadow: var(--shadow-md);
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
           opacity: 0;
-          transform: translateY(30px) scale(0.95);
-          transition: opacity 0.5s ease, transform 0.5s ease,
+          transform: translateY(20px);
+          transition: opacity 0.4s ease, transform 0.4s ease,
                       box-shadow 0.3s ease, border-color 0.3s ease;
         }
 
         .amenities__tile--visible {
           opacity: 1;
-          transform: translateY(0) scale(1);
+          transform: translateY(0);
         }
 
         .amenities__tile:hover {
-          box-shadow: var(--shadow-xl), var(--shadow-gold);
+          box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(212, 175, 55, 0.3);
           border-color: var(--luxe-gold);
         }
 
         /* Tile Image */
         .amenities__tile-image {
           position: relative;
-          aspect-ratio: 16 / 10;
+          height: 140px;
           overflow: hidden;
+        }
+
+        @media (min-width: 768px) {
+          .amenities__tile-image {
+            height: 160px;
+          }
         }
 
         .amenities__tile-image img {
@@ -321,7 +326,7 @@ function Amenities() {
         }
 
         .amenities__tile:hover .amenities__tile-image img {
-          transform: scale(1.1);
+          transform: scale(1.08);
         }
 
         .amenities__tile-overlay {
@@ -329,60 +334,67 @@ function Amenities() {
           inset: 0;
           background: linear-gradient(
             to bottom,
-            transparent 50%,
-            rgba(26, 26, 26, 0.7) 100%
+            transparent 40%,
+            rgba(26, 26, 26, 0.5) 100%
           );
         }
 
         /* Tile Content */
         .amenities__tile-content {
-          padding: var(--space-6) var(--space-5) var(--space-8);
+          padding: var(--space-4) var(--space-4) var(--space-5);
           text-align: center;
           display: flex;
           flex-direction: column;
           align-items: center;
-          justify-content: flex-start;
-          min-height: 240px;
         }
 
         .amenities__tile-icon {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 64px;
-          height: 64px;
-          background: rgba(212, 175, 55, 0.08);
+          width: 56px;
+          height: 56px;
+          background: var(--cream-light);
           color: var(--luxe-gold);
           border-radius: 50%;
-          margin-bottom: var(--space-5);
-          transition: all 0.4s var(--ease-elegant);
-          border: 1px solid rgba(212, 175, 55, 0.15);
+          margin-top: -36px;
+          margin-bottom: var(--space-3);
+          transition: all 0.3s ease;
+          border: 2px solid rgba(212, 175, 55, 0.25);
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+          position: relative;
+          z-index: 2;
+        }
+
+        .amenities__tile-icon svg {
+          width: 26px;
+          height: 26px;
         }
 
         .amenities__tile:hover .amenities__tile-icon {
-          transform: translateY(-5px);
+          transform: scale(1.1);
           background: var(--luxe-gold);
           color: var(--charcoal-darker);
-          box-shadow: 0 10px 20px rgba(212, 175, 55, 0.2);
+          border-color: var(--luxe-gold);
+          box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
         }
 
         .amenities__tile-title {
           font-family: var(--font-primary);
-          font-size: var(--text-xl);
+          font-size: var(--text-lg);
           font-weight: var(--font-weight-playfair-bold);
           color: var(--charcoal-darker);
-          margin-bottom: var(--space-3);
+          margin-bottom: var(--space-2);
           letter-spacing: 0.01em;
         }
 
         .amenities__tile-description {
           font-family: var(--font-secondary);
-          font-size: 0.95rem;
+          font-size: 0.85rem;
           color: var(--charcoal-deep);
-          line-height: 1.7;
-          opacity: 0.9;
+          line-height: 1.6;
+          opacity: 0.85;
           margin: 0;
-          max-width: 90%;
         }
 
         /* Statistics Section - FR-4.5 */

@@ -246,95 +246,7 @@ export const TESTIMONIALS = [
     },
 ];
 
-/**
- * Special Offers with complete details.
- * @type {Array<Object>}
- */
-export const SPECIAL_OFFERS = [
-    {
-        id: 'honeymoon',
-        title: 'Honeymoon Package',
-        subtitle: 'Begin Your Forever',
-        description: 'Celebrate your special journey with a stay in our Luxury Suite. Includes special room decoration, breakfast in bed, and a candlelit dinner.',
-        discount: 'Package',
-        originalPrice: '₨12,500',
-        offerPrice: '₨10,000',
-        validFrom: '2026-01-01',
-        validTo: '2026-12-31',
-        isLimited: false,
-        minNights: 2,
-        includes: [
-            'Luxury Suite accommodation',
-            'Complimentary Breakfast',
-            'Room Decoration',
-            'Candlelit Dinner',
-            'Late checkout',
-        ],
-        terms: 'Minimum 2-night stay required.',
-        image: '/images/rooms/rooms-07-suite.webp',
-    },
-    {
-        id: 'summer',
-        title: 'Weekly Saver',
-        subtitle: 'Stay Longer, Save More',
-        description: 'Enjoy a week of comfort in our Normal Rooms at a special discounted rate.',
-        discount: '15% OFF',
-        originalPrice: '₨52,500',
-        offerPrice: '₨44,625',
-        validFrom: '2026-01-01',
-        validTo: '2026-12-31',
-        isLimited: false,
-        minNights: 7,
-        includes: [
-            '7 Nights in Normal Room',
-            'Weekly cleaning service',
-            'WiFi Included',
-        ],
-        terms: 'Full payment in advance required.',
-        image: '/images/rooms/rooms-02-comfort.webp',
-    },
-    {
-        id: 'wellness',
-        title: 'Weekend Getaway',
-        subtitle: 'Refresh & Recharge',
-        description: 'A perfect weekend escape in our Luxury Suite with spa access included.',
-        discount: 'Special',
-        originalPrice: '₨25,000',
-        offerPrice: '₨22,000',
-        validFrom: '2026-01-01',
-        validTo: '2026-12-31',
-        isLimited: false,
-        minNights: 2,
-        includes: [
-            '2 Nights in Luxury Suite',
-            'Spa Access',
-            'Buffet Breakfast',
-        ],
-        terms: 'Valid for Friday-Sunday stays only.',
-        image: '/images/spa/spa-01-wellness.webp',
-    },
-    {
-        id: 'business',
-        title: 'Corporate Deal',
-        subtitle: 'Business with Comfort',
-        description: 'Special rates for corporate travelers in our Normal Rooms.',
-        discount: 'Corporate',
-        originalPrice: '₨7,500',
-        offerPrice: '₨6,500',
-        validFrom: '2026-01-01',
-        validTo: '2026-12-31',
-        isLimited: false,
-        minNights: 1,
-        includes: [
-            'Normal Room',
-            'Express Breakfast',
-            'Meeting Room Access (1hr)',
-            'High-speed WiFi',
-        ],
-        terms: 'Valid Company ID required.',
-        image: '/images/events/events-05-meeting.webp',
-    },
-];
+
 
 /**
  * Image gallery data with full specifications.
@@ -387,6 +299,12 @@ export const GALLERY_IMAGES = [
 ];
 
 /**
+ * WhatsApp Contact Link.
+ * @type {string}
+ */
+export const WHATSAPP_LINK = 'https://wa.me/923166268625';
+
+/**
  * Hero content configuration.
  * @type {Object}
  */
@@ -395,10 +313,8 @@ export const HERO_CONTENT = {
     titleAccent: 'Castle',
     tagline: 'Where Luxury Meets Comfort in the Heart of Lahore',
     ctaText: 'Reserve Your Experience',
-    ctaHref: '#contact',
-    backgroundImage: '/images/exterior/exterior-02-facade.webp',
+    ctaHref: WHATSAPP_LINK,
     backgroundVideo: '/videos/hero.mp4',
-    videoFallback: '/images/exterior/exterior-02-facade.webp',
 };
 
 export default {
@@ -407,7 +323,6 @@ export default {
     AMENITY_DESCRIPTIONS,
     DINING_DESCRIPTIONS,
     TESTIMONIALS,
-    SPECIAL_OFFERS,
     GALLERY_IMAGES,
     HERO_CONTENT,
 };

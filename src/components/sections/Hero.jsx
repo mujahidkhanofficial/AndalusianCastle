@@ -27,7 +27,6 @@ const ROTATING_MESSAGES = [
  * @param {Object} props - Component props
  */
 function Hero({
-  backgroundImage = '/images/hero-background.jpg', // Ensure this path is correct for the "Travelers" image
   backgroundVideo,
   ctaHref = '#rooms',
 }) {
@@ -111,6 +110,11 @@ function Hero({
 
   // --- Handlers ---
   const handleCtaClick = (e) => {
+    if (ctaHref && ctaHref.startsWith('http')) {
+      // For external links (WhatsApp), skip internal scroll logic
+      return;
+    }
+
     e.preventDefault();
     setIsLoading(true);
     // Simulate async action
@@ -138,24 +142,16 @@ function Hero({
         }}
       >
         <div className="hero__overlay" style={{ opacity: 0.4 + (scrollProgress * 0.6) }} />
-        {backgroundVideo ? (
+        {backgroundVideo && (
           <video
             className="hero__media"
             autoPlay
             muted
             loop
             playsInline
-            poster={backgroundImage}
           >
-            <source src={backgroundVideo} type="video/mp4" />
+            <source src={process.env.PUBLIC_URL + backgroundVideo} type="video/mp4" />
           </video>
-        ) : (
-          <img
-            src={backgroundImage}
-            alt="Smiling travelers at reception"
-            className="hero__media"
-            loading="eager"
-          />
         )}
       </div>
 
@@ -201,6 +197,8 @@ function Hero({
             onClick={handleCtaClick}
             onMouseEnter={() => setIsHoveringCta(true)}
             onMouseLeave={() => setIsHoveringCta(false)}
+            target={ctaHref.startsWith('http') ? "_blank" : undefined}
+            rel={ctaHref.startsWith('http') ? "noopener noreferrer" : undefined}
           >
             {isLoading ? (
               <Loader2 className="animate-spin" size={20} />

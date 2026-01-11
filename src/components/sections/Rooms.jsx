@@ -186,7 +186,7 @@ function Rooms() {
               {/* Room Image - FR-3.2, Lazy Load */}
               <div className="rooms__card-image">
                 <img
-                  src={room.image}
+                  src={process.env.PUBLIC_URL + room.image}
                   alt={`${room.name} at Andalusian Castle`}
                   loading="lazy"
                   decoding="async"
@@ -240,13 +240,23 @@ function Rooms() {
                   </div>
                 )}
 
-                {/* CTA Button - FR-3.4 */}
-                <button
-                  className="btn btn-primary rooms__cta"
-                  onClick={() => openLightbox(room)}
-                >
-                  View Details
-                </button>
+                {/* CTA Buttons - FR-3.4 */}
+                <div className="rooms__actions">
+                  <button
+                    className="btn btn-secondary rooms__cta"
+                    onClick={() => openLightbox(room)}
+                  >
+                    View Details
+                  </button>
+                  <a
+                    href="https://wa.me/923166268625"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-primary rooms__cta"
+                  >
+                    Book Now
+                  </a>
+                </div>
               </div>
             </article>
           ))}
@@ -284,7 +294,7 @@ function Rooms() {
           {/* Image Container */}
           <div className="lightbox__content">
             <img
-              src={lightbox.room.gallery[lightbox.currentIndex]}
+              src={process.env.PUBLIC_URL + lightbox.room.gallery[lightbox.currentIndex]}
               alt={`${lightbox.room.name} - Image ${lightbox.currentIndex + 1}`}
             />
             <div className="lightbox__caption">
@@ -313,7 +323,7 @@ function Rooms() {
                 onClick={() => setLightbox((prev) => ({ ...prev, currentIndex: idx }))}
                 aria-label={`View image ${idx + 1}`}
               >
-                <img src={img} alt="" loading="lazy" />
+                <img src={process.env.PUBLIC_URL + img} alt="" loading="lazy" />
               </button>
             ))}
           </div>
@@ -503,9 +513,22 @@ function Rooms() {
           opacity: 0.7;
         }
 
-        /* CTA */
-        .rooms__cta {
+        /* Actions */
+        .rooms__actions {
+          display: flex;
+          gap: var(--space-3);
           width: 100%;
+          margin-top: var(--space-4);
+        }
+
+        .rooms__cta {
+          flex: 1;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          white-space: nowrap;
+          padding: var(--space-3) var(--space-2);
+          font-size: var(--text-sm);
         }
 
         /* Lightbox Modal */

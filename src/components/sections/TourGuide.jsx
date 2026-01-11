@@ -1,374 +1,423 @@
 /**
  * @fileoverview Tour Guide Section for exploring Lahore.
- * Features categorized attractions with distance, time estimates, and background imagery.
- * Implements premium animations and visual polish.
- * @version 1.2.0
+ * Rebuilt with Testimonial-style carousel to show attractions one by one.
+ * Features touch/swipe support and auto-rotation.
+ * @version 2.0.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   MapPin,
   Clock,
-  History,
-  Palette,
-  TreePine,
-  ShoppingBag,
-  HandMetal,
-  Building2,
+  ChevronLeft,
   ChevronRight,
-  Sparkles
+  Play,
+  Pause,
+  Sparkles,
+  Compass
 } from 'lucide-react';
 
 /**
- * Tour categories and attractions data with mapped images.
+ * Flattened Tour attractions data.
  */
-const TOUR_CATEGORIES = [
+const ATTRACTIONS_DATA = [
   {
-    id: 'historical',
-    title: 'Historical & Cultural',
-    icon: <History size={20} />,
-    items: [
-      {
-        name: "Grand Jamia Mosque",
-        distance: "1 km",
-        time: "5 min",
-        desc: "One of the world's most beautiful and largest mosques.",
-        image: "/images/Tour/Grand_Jamia_Mosque.webp"
-      },
-      {
-        name: "Badshahi Mosque",
-        distance: "25 km",
-        time: "35–40 min",
-        desc: "Iconic Mughal-era mosque and major tourist landmark.",
-        image: "/images/Tour/Badshahi_Mosque.webp"
-      },
-      {
-        name: "Lahore Fort (Shahi Qila)",
-        distance: "25 km",
-        time: "35–40 min",
-        desc: "UNESCO World Heritage Site beside Badshahi Mosque.",
-        image: "/images/Tour/Lahore_Fort.webp"
-      },
-      {
-        name: "Shalimar Gardens",
-        distance: "28 km",
-        time: "40–45 min",
-        desc: "Historic Mughal royal gardens with exquisite water features.",
-        image: "/images/Tour/Shalimar.webp"
-      },
-      {
-        name: "Minar-e-Pakistan",
-        distance: "24 km",
-        time: "35 min",
-        desc: "National monument and large public park in Greater Iqbal Park.",
-        image: "/images/Tour/Minar_e_Pakistan.webp"
-      },
-      {
-        name: "Wazir Khan Mosque",
-        distance: "26 km",
-        time: "40 min",
-        desc: "Famous for detailed tile work inside Walled City.",
-        image: "/images/Tour/Wazir_Khan_Mosque.webp"
-      },
-      {
-        name: "Delhi Gate",
-        distance: "26 km",
-        time: "40–45 min",
-        desc: "Authentic Old Lahore streets and culture.",
-        image: "/images/Tour/Delhi_Gate.webp"
-      },
-      {
-        name: "Gurdwara Dera Sahib",
-        distance: "35 km",
-        time: "35–40 min",
-        desc: "Commemorates Guru Arjan Dev Ji; a major Sikh pilgrimage site near Lahore Fort.",
-        image: "/images/Tour/gurdwara_sri_dera_sahib_lahore.webp"
-      },
-      {
-        name: "Gurdwara Janam Asthan",
-        distance: "35 km",
-        time: "35–40 min",
-        desc: "Birthplace of Guru Ram Das Ji, located in the historic Chuna Mandi Bazaar.",
-        image: "/images/Tour/Gurdwara_Janam_Asthan.webp"
-      },
-      {
-        name: "Gurdwara Bhai Taru Singh",
-        distance: "34 km",
-        time: "35 min",
-        desc: "Historic site commemorating the martyrdom of Bhai Taru Singh in 1745.",
-        image: "/images/Tour/Gurdwara_Shaheed_Bhai_Taru_Singh_Lahore.webp"
-      },
-      {
-        name: "Valmiki Mandir",
-        distance: "35 km",
-        time: "35–40 min",
-        desc: "Dedicated to Sage Valmiki, the revered author of the Ramayana.",
-        image: "/images/Tour/Valmiki_Tirath.webp"
-      },
-      {
-        name: "Krishna Mandir",
-        distance: "34 km",
-        time: "35 min",
-        desc: "One of Lahore's few active Hindu temples, dedicated to Lord Krishna.",
-        image: "/images/Tour/Krishna_Ram_Mandir.webp"
-      },
-      {
-        name: "Shri Hinglaj Mata Mandir",
-        distance: "35 km",
-        time: "35–40 min",
-        desc: "Sacred shrine devoted to Goddess Hinglaj within the Walled City area.",
-        image: "/images/Tour/Shri_Hinglaj_Mata_Mandir.webp"
-      },
-    ]
+    id: 'a1',
+    name: "Grand Jamia Mosque",
+    distance: "1 km",
+    time: "5 min",
+    desc: "One of the world's most beautiful and largest mosques, showcasing intricate Islamic architecture.",
+    image: "/images/Tour/Grand_Jamia_Mosque.webp",
+    tag: "Historical"
   },
   {
-    id: 'shopping',
-    title: 'Shopping & Food',
-    icon: <ShoppingBag size={20} />,
-    items: [
-      {
-        name: "Fort Road Food Street",
-        distance: "25 km",
-        time: "35–40 min",
-        desc: "Heritage rooftop dining with stunning mosque views.",
-        image: "/images/Tour/lahore-food-street.webp"
-      },
-      {
-        name: "Anarkali Bazaar",
-        distance: "22 km",
-        time: "30–35 min",
-        desc: "Traditional shopping and famous Old Food Street.",
-        image: "/images/Tour/Anarkali_Bazaar.webp"
-      },
-      {
-        name: "Liberty Market",
-        distance: "18 km",
-        time: "25–30 min",
-        desc: "Popular shopping area with cafés and street food.",
-        image: "/images/Tour/Liberty_Market.webp"
-      },
-      {
-        name: "MM Alam Road",
-        distance: "19 km",
-        time: "30 min",
-        desc: "Fine dining, designer cafés, and boutique restaurants.",
-        image: "/images/Tour/MM_Alam_Road.webp"
-      },
-      {
-        name: "Gawalmandi Food Street",
-        distance: "24 km",
-        time: "35–40 min",
-        desc: "Famous destination for traditional Lahori desi food.",
-        image: "/images/Tour/Gawalmandi_Food_Street.webp"
-      },
-    ]
+    id: 'a2',
+    name: "Badshahi Mosque",
+    distance: "25 km",
+    time: "35–40 min",
+    desc: "Iconic Mughal-era mosque and major tourist landmark, once the largest in the world.",
+    image: "/images/Tour/Badshahi_Mosque.webp",
+    tag: "Cultural"
   },
   {
-    id: 'parks',
-    title: 'Parks & Leisure',
-    icon: <TreePine size={20} />,
-    items: [
-      {
-        name: "Jilani (Race Course) Park",
-        distance: "20 km",
-        time: "30 min",
-        desc: "Large green park for families and recreational walks.",
-        image: "/images/Tour/Jilani_Park.webp"
-      },
-      {
-        name: "Safari Zoo & Park",
-        distance: "18 km",
-        time: "25–30 min",
-        desc: "Family-friendly wildlife park and natural reserve.",
-        image: "/images/Tour/Safari_Zoo_Park.webp"
-      },
-    ]
+    id: 'a3',
+    name: "Lahore Fort (Shahi Qila)",
+    distance: "25 km",
+    time: "35–40 min",
+    desc: "UNESCO World Heritage Site beside Badshahi Mosque, a testament to Mughal grandeur.",
+    image: "/images/Tour/Lahore_Fort.webp",
+    tag: "Heritage"
   },
   {
-    id: 'modern',
-    title: 'Modern Attractions',
-    icon: <Building2 size={20} />,
-    items: [
-      {
-        name: "Eiffel Tower Replica",
-        distance: "1 km",
-        time: "5 min",
-        desc: "Popular photo attraction and vibrant commercial hub in Bahria Town.",
-        image: "/images/Tour/Eiffel_Tower_Replica.webp"
-      },
-      {
-        name: "Emporium Mall",
-        distance: "17 km",
-        time: "25 min",
-        desc: "Grand shopping, cinema, and international food court.",
-        image: "/images/Tour/Emporium_Mall.webp"
-      },
-      {
-        name: "Packages Mall",
-        distance: "20 km",
-        time: "30 min",
-        desc: "Premium brands and wide family entertainment options.",
-        image: "/images/Tour/Lahore_Packages_Mall.webp"
-      },
-    ]
+    id: 'a4',
+    name: "Shalimar Gardens",
+    distance: "28 km",
+    time: "40–45 min",
+    desc: "Historic Mughal royal gardens with exquisite water features and multi-level terraces.",
+    image: "/images/Tour/Shalimar.webp",
+    tag: "Nature"
+  },
+  {
+    id: 'a5',
+    name: "Minar-e-Pakistan",
+    distance: "24 km",
+    time: "35 min",
+    desc: "National monument and large public park commemorating the Lahore Resolution.",
+    image: "/images/Tour/Minar_e_Pakistan.webp",
+    tag: "National"
+  },
+  {
+    id: 'a6',
+    name: "Wazir Khan Mosque",
+    distance: "26 km",
+    time: "40 min",
+    desc: "Famous for its incredibly detailed tile work and fresco paintings inside the Walled City.",
+    image: "/images/Tour/Wazir_Khan_Mosque.webp",
+    tag: "Architecture"
+  },
+  {
+    id: 'a7',
+    name: "Gurdwara Janam Asthan",
+    distance: "35 km",
+    time: "40 min",
+    desc: "One of the holiest Sikh sites, the birthplace of Guru Nanak Dev Ji.",
+    image: "/images/Tour/Gurdwara_Janam_Asthan.webp",
+    tag: "Sikh Heritage"
+  },
+  {
+    id: 'a8',
+    name: "Gurdwara Sri Dera Sahib",
+    distance: "26 km",
+    time: "35 min",
+    desc: "A significant Sikh temple located near the Lahore Fort, honoring Guru Arjan Dev Ji.",
+    image: "/images/Tour/gurdwara_sri_dera_sahib_lahore.webp",
+    tag: "Sikh Heritage"
+  },
+  {
+    id: 'a9',
+    name: "Gurdwara Bhai Taru Singh",
+    distance: "25 km",
+    time: "35 min",
+    desc: "A historic Sikh shrine commemorating the sacrifice of Shaheed Bhai Taru Singh.",
+    image: "/images/Tour/Gurdwara_Shaheed_Bhai_Taru_Singh_Lahore.webp",
+    tag: "Sikh Heritage"
+  },
+  {
+    id: 'a10',
+    name: "Krishna Ram Mandir",
+    distance: "25 km",
+    time: "35 min",
+    desc: "A prominent Hindu temple in Lahore, representing the city's diverse religious history.",
+    image: "/images/Tour/Krishna_Ram_Mandir.webp",
+    tag: "Hindu Heritage"
+  },
+  {
+    id: 'a11',
+    name: "Valmiki Mandir",
+    distance: "24 km",
+    time: "35 min",
+    desc: "An ancient Hindu temple dedicated to Sage Valmiki, located near Anarkali Bazaar.",
+    image: "/images/Tour/Valmiki_Tirath.webp",
+    tag: "Hindu Heritage"
+  },
+  {
+    id: 'a12',
+    name: "Shri Hinglaj Mata Mandir",
+    distance: "26 km",
+    time: "40 min",
+    desc: "A revered Hindu shrine dedicated to Goddess Hinglaj within the historic Walled City.",
+    image: "/images/Tour/Shri_Hinglaj_Mata_Mandir.webp",
+    tag: "Hindu Heritage"
+  },
+  {
+    id: 'a13',
+    name: "Anarkali Bazaar",
+    distance: "22 km",
+    time: "30-35 min",
+    desc: "One of the oldest surviving markets in South Asia, famous for its history and legends.",
+    image: "/images/Tour/Anarkali_Bazaar.webp",
+    tag: "Shopping"
+  },
+  {
+    id: 'a14',
+    name: "Delhi Gate",
+    distance: "26 km",
+    time: "40 min",
+    desc: "One of the six surviving historic gates of the Walled City, lead to vibrant local markets.",
+    image: "/images/Tour/Delhi_Gate.webp",
+    tag: "Exploration"
+  },
+  {
+    id: 'a15',
+    name: "Liberty Market",
+    distance: "18 km",
+    time: "25 min",
+    desc: "A bustling modern shopping hub famous for clothing, jewelry, and street food.",
+    image: "/images/Tour/Liberty_Market.webp",
+    tag: "Lifestyle"
+  },
+  {
+    id: 'a16',
+    name: "MM Alam Road",
+    distance: "19 km",
+    time: "30 min",
+    desc: "Lahore's premier fashion and dining strip, featuring high-end brands and cafes.",
+    image: "/images/Tour/MM_Alam_Road.webp",
+    tag: "Dining"
+  },
+  {
+    id: 'a17',
+    name: "Fort Road Food Street",
+    distance: "25 km",
+    time: "35–40 min",
+    desc: "Heritage rooftop dining with stunning mosque views and authentic Lahori flavors.",
+    image: "/images/Tour/Fort_Road_Food_Street.webp",
+    tag: "Gourmet"
+  },
+  {
+    id: 'a18',
+    name: "Gawalmandi Food Street",
+    distance: "24 km",
+    time: "35 min",
+    desc: "The original food street of Lahore, famous for its traditional Lahori breakfast and snacks.",
+    image: "/images/Tour/Gawalmandi_Food_Street.webp",
+    tag: "Traditional"
+  },
+  {
+    id: 'a19',
+    name: "Eiffel Tower Replica",
+    distance: "1 km",
+    time: "5 min",
+    desc: "Popular photo attraction and vibrant commercial hub located right here in Bahria Town.",
+    image: "/images/Tour/Eiffel_Tower_Replica.webp",
+    tag: "Modern"
+  },
+  {
+    id: 'a20',
+    name: "Emporium Mall",
+    distance: "17 km",
+    time: "25 min",
+    desc: "One of Pakistan's largest shopping malls, featuring international brands and entertainment.",
+    image: "/images/Tour/Emporium_Mall.webp",
+    tag: "Luxury"
+  },
+  {
+    id: 'a21',
+    name: "Packages Mall",
+    distance: "20 km",
+    time: "30 min",
+    desc: "A modern shopping destination with a wide variety of outlets and a grand food court.",
+    image: "/images/Tour/Lahore_Packages_Mall.webp",
+    tag: "Modern"
+  },
+  {
+    id: 'a22',
+    name: "Jilani Park (Race Course)",
+    distance: "20 km",
+    time: "30 min",
+    desc: "A beautiful public park known for its floral exhibitions and equestrian events.",
+    image: "/images/Tour/Jilani_Park.webp",
+    tag: "Outdoors"
+  },
+  {
+    id: 'a23',
+    name: "Safari Zoo Park",
+    distance: "18 km",
+    time: "25-30 min",
+    desc: "A drive-through wildlife park offering close encounters with lions and tigers.",
+    image: "/images/Tour/Safari_Zoo_Park.webp",
+    tag: "Adventure"
+  },
+  {
+    id: 'a24',
+    name: "Lahori Food Street",
+    distance: "25 km",
+    time: "35 min",
+    desc: "Experience the vibrant night life and street food culture of old Lahore.",
+    image: "/images/Tour/lahore-food-street.webp",
+    tag: "Culture"
   }
 ];
 
+const AUTOPLAY_INTERVAL = 5000;
+
 function TourGuide() {
-  const [activeTab, setActiveTab] = useState('historical');
-  const [currentPage, setCurrentPage] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const sectionRef = useRef(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+  const carouselRef = useRef(null);
+  const dotsRef = useRef(null);
 
-  const ITEMS_PER_PAGE = 6;
-  const currentCategory = TOUR_CATEGORIES.find(c => c.id === activeTab);
-  const totalItems = currentCategory?.items || [];
-  const totalPages = Math.ceil(totalItems.length / ITEMS_PER_PAGE);
-
-  const paginatedItems = totalItems.slice(
-    currentPage * ITEMS_PER_PAGE,
-    (currentPage + 1) * ITEMS_PER_PAGE
-  );
-
-  // Intersection Observer for entrance
+  // Ensure active dot is visible on mobile without disrupting page scroll
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) setIsVisible(true);
-      },
-      { threshold: 0.1 }
-    );
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
+    const container = dotsRef.current;
+    if (container) {
+      const activeDot = container.querySelector('.tour-guide__dot--active');
+      if (activeDot) {
+        const scrollLeft = activeDot.offsetLeft - (container.offsetWidth / 2) + (activeDot.offsetWidth / 2);
+        container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+      }
+    }
+  }, [currentIndex]);
 
-  // Auto-slide logic
+  const goToSlide = useCallback((index) => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setCurrentIndex(index);
+      setIsTransitioning(false);
+    }, 400);
+  }, [isTransitioning]);
+
+  const nextSlide = useCallback(() => {
+    const nextIndex = (currentIndex + 1) % ATTRACTIONS_DATA.length;
+    goToSlide(nextIndex);
+  }, [currentIndex, goToSlide]);
+
+  const prevSlide = useCallback(() => {
+    const prevIndex = currentIndex === 0 ? ATTRACTIONS_DATA.length - 1 : currentIndex - 1;
+    goToSlide(prevIndex);
+  }, [currentIndex, goToSlide]);
+
   useEffect(() => {
-    if (isPaused || totalPages <= 1) return;
-
-    const interval = setInterval(() => {
-      setCurrentPage((prev) => (prev + 1) % totalPages);
-    }, 5000);
-
+    if (!isPlaying) return;
+    const interval = setInterval(nextSlide, AUTOPLAY_INTERVAL);
     return () => clearInterval(interval);
-  }, [totalPages, isPaused, activeTab]);
+  }, [isPlaying, nextSlide]);
 
-  // Reset page when tab changes
-  useEffect(() => {
-    setCurrentPage(0);
-  }, [activeTab]);
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
 
-  const handleNext = () => setCurrentPage((prev) => (prev + 1) % totalPages);
-  const handlePrev = () => setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages);
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) nextSlide();
+      else prevSlide();
+    }
+  };
+
+  const currentItem = ATTRACTIONS_DATA[currentIndex];
 
   return (
-    <section
-      id="tour-guide"
-      className="tour-guide section section--dark"
-      ref={sectionRef}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-    >
+    <section id="tour-guide" className="tour-guide section section--dark">
       <div className="container">
         {/* Section Header */}
         <header className="section-header text-center">
+          <span className="accent-text text-gold">Local Highlights</span>
           <h2 className="section-title">
             Explore <span className="text-gold">Lahore</span> With Us
           </h2>
           <div className="divider-gold" aria-hidden="true" />
           <p className="section-subtitle">
-            The heart of Pakistan’s history, culture, and vibrant city life! Whether you are visiting from abroad or elsewhere in Pakistan, our professional tour guides are here to make your experience safe, informative, and memorable.
+            From the historic Walled City to modern replicas, discover the vibrant soul
+            of Pakistan's cultural capital with our curated guide.
           </p>
         </header>
 
-        {/* Sticky Category Tabs */}
-        <div className="tour-guide__nav-container">
-          <nav className="tour-guide__tabs">
-            {TOUR_CATEGORIES.map((cat) => (
+        {/* Carousel Container */}
+        <div
+          ref={carouselRef}
+          className="tour-guide__carousel"
+          onMouseEnter={() => setIsPlaying(false)}
+          onMouseLeave={() => setIsPlaying(true)}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          tabIndex={0}
+          role="region"
+          aria-label="Tour attractions carousel"
+        >
+          <article className={`tour-guide__slide ${isTransitioning ? 'tour-guide__slide--hidden' : ''}`}>
+            {/* Feature Image */}
+            <div className="tour-guide__image-wrapper">
+              <div className="tour-guide__image">
+                <img
+                  src={process.env.PUBLIC_URL + currentItem.image}
+                  alt={currentItem.name}
+                  loading="lazy"
+                />
+                <div className="tour-guide__image-overlay" />
+              </div>
+              <div className="tour-guide__slide-tag">{currentItem.tag}</div>
+            </div>
+
+            {/* Content Area */}
+            <div className="tour-guide__content">
+              <h3 className="tour-guide__item-name">{currentItem.name}</h3>
+
+              <div className="tour-guide__stats">
+                <span className="tour-guide__stat">
+                  <MapPin size={16} /> {currentItem.distance}
+                </span>
+                <span className="tour-guide__stat">
+                  <Clock size={16} /> {currentItem.time}
+                </span>
+              </div>
+
+              <p className="tour-guide__item-desc">"{currentItem.desc}"</p>
+
+              <div className="tour-guide__action">
+                <a
+                  href="https://wa.me/923166268625"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="tour-guide__explore-btn"
+                >
+                  <Compass size={18} /> Plan This Visit
+                </a>
+              </div>
+            </div>
+          </article>
+
+          {/* Navigation Arrows */}
+          <button className="tour-guide__nav tour-guide__nav--prev" onClick={prevSlide} aria-label="Previous">
+            <ChevronLeft size={24} />
+          </button>
+          <button className="tour-guide__nav tour-guide__nav--next" onClick={nextSlide} aria-label="Next">
+            <ChevronRight size={24} />
+          </button>
+        </div>
+
+        <div className="tour-guide__controls">
+          <nav
+            className="tour-guide__dots"
+            ref={dotsRef}
+            aria-label="Tour navigation dots"
+          >
+            {ATTRACTIONS_DATA.map((_, index) => (
               <button
-                key={cat.id}
-                className={`tour-guide__tab ${activeTab === cat.id ? 'tour-guide__tab--active' : ''}`}
-                onClick={() => setActiveTab(cat.id)}
-                aria-pressed={activeTab === cat.id}
-              >
-                <span className="tour-guide__tab-icon">{cat.icon}</span>
-                <span className="tour-guide__tab-title">{cat.title}</span>
-              </button>
+                key={index}
+                className={`tour-guide__dot ${index === currentIndex ? 'tour-guide__dot--active' : ''}`}
+                onClick={() => goToSlide(index)}
+                aria-label={`Go to item ${index + 1}`}
+              />
             ))}
           </nav>
+          <button
+            className="tour-guide__play-toggle"
+            onClick={() => setIsPlaying(!isPlaying)}
+            aria-label={isPlaying ? 'Pause' : 'Play'}
+          >
+            {isPlaying ? <Pause size={20} /> : <Play size={20} />}
+          </button>
         </div>
 
-        {/* Attractions Grid / Slider Area */}
-        <div className="tour-guide__slider-wrap">
-          {totalPages > 1 && (
-            <>
-              <button className="tour-guide__arrow tour-guide__arrow--prev" onClick={handlePrev} aria-label="Previous Page">
-                <ChevronRight style={{ transform: 'rotate(180deg)' }} />
-              </button>
-              <button className="tour-guide__arrow tour-guide__arrow--next" onClick={handleNext} aria-label="Next Page">
-                <ChevronRight />
-              </button>
-            </>
-          )}
-
-          <div className={`tour-guide__grid ${isVisible ? 'tour-guide__grid--active' : ''}`}>
-            {paginatedItems.map((item, idx) => (
-              <article
-                key={`${activeTab}-${currentPage}-${item.name}`}
-                className="tour-guide__card"
-                style={{ transitionDelay: `${idx * 50}ms` }}
-              >
-                <div className="tour-guide__card-bg">
-                  <img src={item.image} alt={item.name} loading="lazy" />
-                  <div className="tour-guide__card-overlay" />
-                </div>
-
-                <div className="tour-guide__card-content">
-                  <div className="tour-guide__card-header">
-                    <h3 className="tour-guide__card-title">{item.name}</h3>
-                    <div className="tour-guide__card-meta">
-                      <span className="tour-guide__stat">
-                        <MapPin size={14} /> {item.distance}
-                      </span>
-                      <span className="tour-guide__stat">
-                        <Clock size={14} /> {item.time}
-                      </span>
-                    </div>
-                  </div>
-
-                  <p className="tour-guide__card-desc">{item.desc}</p>
-
-                  <div className="tour-guide__card-footer">
-                    <span className="tour-guide__explore-link">
-                      Explore More <ChevronRight size={14} />
-                    </span>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          {/* Pagination Dots */}
-          {totalPages > 1 && (
-            <div className="tour-guide__dots">
-              {[...Array(totalPages)].map((_, i) => (
-                <button
-                  key={i}
-                  className={`tour-guide__dot ${currentPage === i ? 'tour-guide__dot--active' : ''}`}
-                  onClick={() => setCurrentPage(i)}
-                  aria-label={`Go to page ${i + 1}`}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Local Disclaimer */}
+        {/* Disclaimer */}
         <div className="tour-guide__disclaimer">
           <div className="tour-guide__disclaimer-content">
             <Sparkles size={20} className="text-gold" />
-            <p>Distances are calculated from Andalusian Castle in Bahria Town, Lahore. We offer private chauffeur services and local certified guides for your exploration.</p>
+            <p>
+              Distances are calculated from Andalusian Castle in Bahria Town.
+              We offer private chauffeur services and local certified guides
+              for a seamless exploration experience.
+            </p>
           </div>
         </div>
       </div>
@@ -376,242 +425,279 @@ function TourGuide() {
       <style>{`
         .tour-guide {
           background: #121212;
-          color: var(--cream-elegant);
           position: relative;
-          padding-bottom: var(--space-20);
-          overflow: hidden;
+          z-index: 1;
         }
 
-        /* Sticky Navigation */
-        .tour-guide__nav-container {
-          position: sticky;
-          top: 80px; /* Adjust based on main nav height */
-          z-index: 100;
-          background: rgba(18, 18, 18, 0.9);
-          backdrop-filter: blur(10px);
-          padding: var(--space-4) 0;
-          margin-bottom: var(--space-12);
-          border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+        .tour-guide__carousel {
+          position: relative;
+          max-width: 1250px;
+          margin: var(--space-8) auto 0;
+          padding: 0 var(--space-20);
+          outline: none;
         }
 
-        .tour-guide__tabs {
+        @media (max-width: 1280px) {
+          .tour-guide__carousel {
+            max-width: 1000px;
+            padding: 0 var(--space-16);
+          }
+        }
+
+        @media (max-width: 1024px) {
+          .tour-guide__carousel {
+            padding: 0 var(--space-12);
+          }
+        }
+
+        .tour-guide__slide {
           display: flex;
-          gap: var(--space-3);
-          justify-content: center;
-          overflow-x: auto;
-          scrollbar-width: none;
-          padding: 0 var(--space-4);
-        }
-
-        .tour-guide__tabs::-webkit-scrollbar { display: none; }
-
-        .tour-guide__tab {
-          display: flex;
+          flex-direction: column;
           align-items: center;
-          gap: var(--space-2);
-          padding: 10px 20px;
-          background: rgba(255, 255, 255, 0.05);
-          border: 1px solid rgba(212, 175, 55, 0.2);
-          border-radius: 50px;
-          color: var(--cream-elegant);
-          cursor: pointer;
-          transition: all 0.3s ease;
-          white-space: nowrap;
-          font-family: var(--font-secondary);
-          font-size: 13px;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.05em;
-        }
-
-        .tour-guide__tab--active {
-          background: #D4AF37; /* Gold */
-          color: #121212;
-          border-color: #D4AF37;
-          box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
-        }
-
-        /* Slider Wrapper */
-        .tour-guide__slider-wrap {
-          position: relative;
-          min-height: 800px;
-        }
-
-        .tour-guide__grid {
-          display: grid;
-          grid-template-columns: repeat(1, 1fr);
-          gap: 25px;
-          opacity: 0;
-          transition: opacity 0.8s ease;
-        }
-
-        .tour-guide__grid--active {
+          gap: var(--space-8);
+          text-align: center;
           opacity: 1;
-        }
-
-        @media (min-width: 768px) {
-          .tour-guide__grid { grid-template-columns: repeat(2, 1fr); }
+          transform: scale(1);
+          transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+          padding: var(--space-12) 0;
         }
 
         @media (min-width: 1024px) {
-          .tour-guide__grid { grid-template-columns: repeat(3, 1fr); }
+          .tour-guide__slide {
+            flex-direction: row;
+            text-align: left;
+            align-items: center;
+            gap: var(--space-16);
+            padding: var(--space-16) 0;
+          }
         }
 
-        /* Card Styling */
-        .tour-guide__card {
+        .tour-guide__slide--hidden {
+          opacity: 0;
+          transform: scale(0.95);
+        }
+
+        /* Image Styling */
+        .tour-guide__image-wrapper {
           position: relative;
+          flex-shrink: 0;
+        }
+
+        .tour-guide__image {
+          width: 320px;
           height: 400px;
-          border-radius: 15px;
+          border-radius: var(--radius-lg);
           overflow: hidden;
-          background: #1a1a1a;
-          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-          transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;
-          animation: fadeIn 0.8s ease backwards;
+          border: 3px solid var(--luxe-gold);
+          box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+          position: relative;
+          transition: transform 0.4s ease;
         }
 
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+        @media (min-width: 1024px) {
+          .tour-guide__image {
+            width: 500px;
+            height: 600px;
+          }
         }
 
-        .tour-guide__card:hover {
-          transform: scale(1.02);
-          box-shadow: 0 15px 40px rgba(0,0,0,0.8), 0 0 20px rgba(212, 175, 55, 0.1);
-          z-index: 2;
+        @media (max-width: 640px) {
+          .tour-guide__image {
+            width: 280px;
+            height: 350px;
+          }
         }
 
-        .tour-guide__card-bg {
-          position: absolute;
-          inset: 0;
-        }
-
-        .tour-guide__card-bg img {
+        .tour-guide__image img {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          transition: transform 1.5s ease;
         }
 
-        .tour-guide__card:hover img { transform: scale(1.1); }
-
-        .tour-guide__card-overlay {
+        .tour-guide__image-overlay {
           position: absolute;
           inset: 0;
-          background: linear-gradient(to bottom, rgba(0,0,0,0.1), rgba(0,0,0,0.8));
+          background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.7));
         }
 
-        /* Card Content */
-        .tour-guide__card-content {
+        .tour-guide__slide-tag {
           position: absolute;
-          bottom: 0;
-          left: 0;
-          width: 100%;
-          padding: 30px;
+          top: 20px;
+          right: -15px;
+          background: var(--luxe-gold);
+          color: var(--charcoal-darker);
+          font-size: 0.75rem;
+          font-weight: 800;
+          text-transform: uppercase;
+          padding: 6px 15px;
+          border-radius: var(--radius-sm);
+          box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+          transform: rotate(3deg);
           z-index: 2;
         }
 
-        .tour-guide__card-title {
+        /* Content Styling */
+        .tour-guide__content {
+          flex: 1;
+        }
+
+        .tour-guide__item-name {
           font-family: var(--font-primary);
-          font-size: 24px;
-          font-weight: 800;
-          color: #fff;
-          margin-bottom: 10px;
+          font-size: var(--text-3xl);
+          color: var(--pure-white);
+          margin-bottom: var(--space-4);
           text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
 
-        .tour-guide__card-meta {
+        @media (min-width: 1024px) {
+          .tour-guide__item-name {
+            font-size: var(--text-5xl);
+            margin-bottom: var(--space-6);
+          }
+        }
+
+        .tour-guide__stats {
           display: flex;
-          gap: 20px;
+          gap: var(--space-6);
+          justify-content: center;
+          margin-bottom: var(--space-6);
+        }
+
+        @media (min-width: 1024px) {
+          .tour-guide__stats {
+            justify-content: flex-start;
+          }
         }
 
         .tour-guide__stat {
           display: flex;
           align-items: center;
-          gap: 6px;
-          font-size: 12px;
+          gap: 8px;
+          color: var(--luxe-gold);
           font-weight: 700;
-          color: #D4AF37; /* Gold */
+          font-size: 0.9rem;
           text-transform: uppercase;
-          letter-spacing: 0.1em;
+          letter-spacing: 1px;
         }
 
-        .tour-guide__card-desc {
-          font-size: 14px;
-          color: #ccc;
-          margin-top: 15px;
+        .tour-guide__item-desc {
+          font-size: var(--text-lg);
           line-height: 1.6;
-          max-height: 0;
-          opacity: 0;
-          overflow: hidden;
-          transition: all 0.4s ease;
+          color: var(--cream-elegant);
+          opacity: 0.9;
+          font-style: italic;
+          margin-bottom: var(--space-8);
+          max-width: 500px;
+          margin-left: auto;
+          margin-right: auto;
         }
 
-        .tour-guide__card:hover .tour-guide__card-desc {
-          max-height: 100px;
-          opacity: 1;
+        @media (min-width: 1024px) {
+          .tour-guide__item-desc {
+            font-size: 1.25rem;
+            max-width: 600px;
+          }
         }
 
-        .tour-guide__card-footer {
-          margin-top: 20px;
-          opacity: 0;
-          transform: translateY(10px);
-          transition: all 0.4s ease;
+        @media (min-width: 1024px) {
+          .tour-guide__item-desc {
+            margin-left: 0;
+            margin-right: 0;
+          }
         }
 
-        .tour-guide__card:hover .tour-guide__card-footer {
-          opacity: 1;
-          transform: translateY(0);
-        }
-
-        .tour-guide__explore-link {
-          color: #D4AF37;
-          font-size: 11px;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 2px;
-          display: flex;
+        .tour-guide__explore-btn {
+          display: inline-flex;
           align-items: center;
-          gap: 5px;
+          gap: 10px;
+          padding: 12px 25px;
+          background: rgba(212, 175, 55, 0.1);
+          border: 1px solid var(--luxe-gold);
+          color: var(--luxe-gold);
+          border-radius: var(--radius-full);
+          font-weight: 700;
+          text-transform: uppercase;
+          font-size: 0.8rem;
+          letter-spacing: 1px;
+          transition: all 0.3s ease;
         }
 
-        /* Controls */
-        .tour-guide__arrow {
+        .tour-guide__explore-btn:hover {
+          background: var(--luxe-gold);
+          color: var(--charcoal-darker);
+          box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+          transform: translateY(-3px);
+        }
+
+        /* Navigation */
+        .tour-guide__nav {
           position: absolute;
-          top: 40%;
+          top: 50%;
           transform: translateY(-50%);
           width: 50px;
           height: 50px;
-          border-radius: 50%;
-          background: rgba(212, 175, 55, 0.1);
-          border: 1px solid rgba(212, 175, 55, 0.3);
-          color: #D4AF37;
           display: flex;
           align-items: center;
           justify-content: center;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(212, 175, 55, 0.3);
+          border-radius: 50%;
+          color: var(--luxe-gold);
           cursor: pointer;
-          z-index: 5;
           transition: all 0.3s ease;
-          backdrop-filter: blur(5px);
+          z-index: 10;
         }
 
-        .tour-guide__arrow:hover {
-          background: #D4AF37;
-          color: #121212;
+        .tour-guide__nav:hover {
+          background: var(--luxe-gold);
+          color: var(--charcoal-darker);
+          border-color: var(--luxe-gold);
+          box-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
         }
 
-        .tour-guide__arrow--prev { left: -70px; }
-        .tour-guide__arrow--next { right: -70px; }
+        .tour-guide__nav--prev { left: 0; }
+        .tour-guide__nav--next { right: 0; }
 
-        @media (max-width: 1200px) {
-          .tour-guide__arrow--prev { left: 10px; }
-          .tour-guide__arrow--next { right: 10px; }
+        @media (min-width: 1440px) {
+          .tour-guide__nav--prev { left: -20px; }
+          .tour-guide__nav--next { right: -20px; }
+        }
+
+        @media (max-width: 768px) {
+          .tour-guide__nav { display: none; }
+        }
+
+        /* Controls */
+        .tour-guide__controls {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: var(--space-8);
+          margin-top: var(--space-12);
         }
 
         .tour-guide__dots {
           display: flex;
           justify-content: center;
-          gap: 12px;
-          margin-top: 40px;
+          gap: var(--space-3);
+          max-width: 100%;
+          padding: var(--space-2) var(--space-4);
+          transition: all 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+          .tour-guide__dots {
+            justify-content: flex-start;
+            overflow-x: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding-bottom: var(--space-4);
+            mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent);
+          }
+          .tour-guide__dots::-webkit-scrollbar {
+            display: none;
+          }
         }
 
         .tour-guide__dot {
@@ -619,43 +705,80 @@ function TourGuide() {
           height: 10px;
           border-radius: 50%;
           background: rgba(212, 175, 55, 0.2);
-          border: none;
+          border: 1px solid var(--luxe-gold);
           cursor: pointer;
+          padding: 0;
           transition: all 0.3s ease;
+          flex-shrink: 0;
         }
 
         .tour-guide__dot--active {
-          background: #D4AF37;
-          transform: scale(1.3);
-          box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+          background: var(--luxe-gold);
+          width: 24px;
+          border-radius: var(--radius-full);
         }
+
+        .tour-guide__play-toggle {
+          background: none;
+          border: none;
+          color: var(--luxe-gold);
+          cursor: pointer;
+          opacity: 0.6;
+          transition: opacity 0.3s ease;
+          display: flex;
+          align-items: center;
+        }
+
+        .tour-guide__play-toggle:hover { opacity: 1; }
 
         /* Disclaimer */
         .tour-guide__disclaimer {
-          margin-top: 60px;
-          border-top: 1px solid rgba(255,255,255,0.05);
-          padding-top: 40px;
+          margin-top: var(--space-12);
+          border-top: 1px solid rgba(212, 175, 55, 0.15);
+          padding-top: var(--space-12);
           text-align: center;
+          padding-bottom: var(--space-8);
         }
 
         .tour-guide__disclaimer-content {
           display: inline-flex;
+          flex-direction: row;
           align-items: center;
-          gap: 15px;
-          padding: 20px 30px;
-          background: rgba(212, 175, 55, 0.03);
-          border: 1px solid rgba(212, 175, 55, 0.1);
-          border-radius: 12px;
-          max-width: 800px;
+          justify-content: center;
+          gap: var(--space-5);
+          padding: var(--space-5) var(--space-8);
+          background: rgba(212, 175, 55, 0.06);
+          border: 1px solid rgba(212, 175, 55, 0.25);
+          border-radius: var(--radius-lg);
+          max-width: 850px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+          margin: 0 var(--space-4);
+        }
+
+        @media (max-width: 640px) {
+          .tour-guide__disclaimer-content {
+            flex-direction: column;
+            padding: var(--space-6) var(--space-5);
+            gap: var(--space-3);
+          }
+        }
+
+        .tour-guide__disclaimer-content .text-gold {
+          color: var(--luxe-gold);
+          flex-shrink: 0;
+          filter: drop-shadow(0 0 8px rgba(212, 175, 55, 0.4));
         }
 
         .tour-guide__disclaimer-content p {
-          font-size: 14px;
+          font-size: clamp(0.9rem, 2.5vw, 1.05rem);
           font-style: italic;
-          color: var(--cream-light);
-          opacity: 0.9;
-          line-height: 1.6;
+          font-weight: 500;
+          color: var(--cream-elegant);
+          opacity: 1;
           margin: 0;
+          line-height: 1.7;
+          letter-spacing: 0.01em;
+          text-shadow: 0 1px 2px rgba(0,0,0,0.5);
         }
       `}</style>
     </section>

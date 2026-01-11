@@ -1,11 +1,13 @@
 /**
  * @fileoverview Footer Component with Multi-Column Layout.
  * Implements FR-10.1 through FR-10.7 from SRS Section 3.1.10.
- * Features quick links, newsletter, social icons, and award badges.
- * @version 3.0.0
+ * Features quick links, social icons, award badges, and legal modals.
+ * @version 4.1.0
  */
 
 import React, { useState, useCallback } from 'react';
+import { Facebook, Instagram, Music2, Twitter, MapPin, Phone, Mail, MessageSquare } from 'lucide-react';
+import { LegalModal } from '../common/LegalPages';
 
 /**
  * Footer navigation links.
@@ -16,23 +18,23 @@ const FOOTER_LINKS = {
     { label: 'Home', href: '#home' },
     { label: 'Rooms & Suites', href: '#rooms' },
     { label: 'Tour Guide', href: '#tour-guide' },
-    { label: 'Laundry & Food', href: '#amenities' },
+    { label: 'Facilities', href: '#amenities' },
     { label: 'Gallery', href: '#gallery' },
-    { label: 'Special Offers', href: '#offers' },
+    { label: 'Contact', href: '#location' },
   ],
   services: [
-    { label: 'Reservations', href: '#contact' },
-    { label: 'Concierge', href: '#amenities' },
-    { label: 'Events & Weddings', href: '#contact' },
-    { label: 'Gift Cards', href: '#' },
-    { label: 'Careers', href: '#' },
-    { label: 'Press', href: '#' },
+    { label: 'Reservations', href: 'https://wa.me/923166268625' },
+    { label: 'Laundry Service', href: '#amenities' },
+    { label: 'Food on Demand', href: '#amenities' },
+    { label: 'SPA on Demand', href: '#amenities' },
+    { label: 'Private Chauffeur', href: '#tour-guide' },
+    { label: 'Business Center', href: '#amenities' },
   ],
   legal: [
-    { label: 'Privacy Policy', href: '#' },
-    { label: 'Terms of Service', href: '#' },
-    { label: 'Cookie Policy', href: '#' },
-    { label: 'Accessibility', href: '#' },
+    { label: 'Privacy Policy', type: 'privacy' },
+    { label: 'Terms of Service', type: 'terms' },
+    { label: 'Cookie Policy', type: 'cookies' },
+    { label: 'Cancellation Policy', type: 'cancellation' },
   ],
 };
 
@@ -50,11 +52,10 @@ const CONTACT = {
  * Social media links.
  */
 const SOCIAL_LINKS = [
-  { name: 'Facebook', url: 'https://facebook.com/andalusiancastle', icon: 'FB' },
-  { name: 'Instagram', url: 'https://instagram.com/andalusiancastle', icon: 'IG' },
-  { name: 'Twitter', url: 'https://twitter.com/andalusiancastle', icon: 'X' },
-  { name: 'LinkedIn', url: 'https://linkedin.com/company/andalusiancastle', icon: 'LI' },
-  { name: 'YouTube', url: 'https://youtube.com/andalusiancastle', icon: 'YT' },
+  { name: 'Facebook', url: 'https://facebook.com/andalusiancastle', icon: <Facebook size={18} /> },
+  { name: 'Instagram', url: 'https://instagram.com/andalusiancastle', icon: <Instagram size={18} /> },
+  { name: 'TikTok', url: 'https://tiktok.com/@andalusiancastle', icon: <Music2 size={18} /> },
+  { name: 'X', url: 'https://x.com/andalusian73893', icon: <Twitter size={18} /> },
 ];
 
 /**
@@ -82,38 +83,16 @@ const AWARDS = [
  * @returns {React.ReactElement} Footer element
  */
 function Footer() {
-  // Newsletter state - FR-10.4
-  const [email, setEmail] = useState('');
-  const [subscribeStatus, setSubscribeStatus] = useState(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  // Legal modal state
+  const [legalModal, setLegalModal] = useState({ isOpen: false, type: null });
 
-  // Email validation
-  const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  const openLegalModal = useCallback((type) => {
+    setLegalModal({ isOpen: true, type });
+  }, []);
 
-  // Handle newsletter submission
-  const handleSubscribe = useCallback(async (e) => {
-    e.preventDefault();
-
-    if (!isValidEmail(email)) {
-      setSubscribeStatus('invalid');
-      return;
-    }
-
-    setIsSubmitting(true);
-    setSubscribeStatus(null);
-
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log('Newsletter subscription:', email);
-      setSubscribeStatus('success');
-      setEmail('');
-    } catch (error) {
-      setSubscribeStatus('error');
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [email]);
+  const closeLegalModal = useCallback(() => {
+    setLegalModal({ isOpen: false, type: null });
+  }, []);
 
   // Smooth scroll handler
   const handleNavClick = (e, href) => {
@@ -137,7 +116,8 @@ function Footer() {
             {/* Brand Column */}
             <div className="footer__brand">
               <a href="#home" className="footer__logo" onClick={(e) => handleNavClick(e, '#home')}>
-                <img src="/images/logo.png" alt="Andalusian Castle" className="footer__logo-img" />
+                <img src={process.env.PUBLIC_URL + "/images/logo.png"} alt="Andalusian Castle" className="footer__logo-img" />
+                <span className="footer__brand-title">Andalusian Castle</span>
               </a>
               <p className="footer__tagline">
                 Where timeless elegance meets modern luxury. Experience the
@@ -192,64 +172,31 @@ function Footer() {
             {/* Contact Column - FR-10.3 */}
             <div className="footer__contact">
               <h4>Contact Us</h4>
-              <address>
-                <p>{CONTACT.address}</p>
-                <p>{CONTACT.city}</p>
-                <p>
+              <div className="footer__contact-items">
+                <div className="footer__contact-item">
+                  <MapPin size={16} className="text-gold" />
+                  <span>{CONTACT.address}, {CONTACT.city}</span>
+                </div>
+                <div className="footer__contact-item">
+                  <Phone size={16} className="text-gold" />
                   <a href={`tel:${CONTACT.phone.replace(/\s/g, '')}`}>{CONTACT.phone}</a>
-                </p>
-                <p>
+                </div>
+                <div className="footer__contact-item">
+                  <MessageSquare size={16} className="text-gold" />
+                  <a href={`https://wa.me/${CONTACT.phone.replace(/\+| /g, '')}`} target="_blank" rel="noopener noreferrer">
+                    WhatsApp: {CONTACT.phone}
+                  </a>
+                </div>
+                <div className="footer__contact-item">
+                  <Mail size={16} className="text-gold" />
                   <a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a>
-                </p>
-              </address>
+                </div>
+              </div>
             </div>
 
-            {/* Newsletter Column - FR-10.4 */}
-            <div className="footer__newsletter">
-              <h4>Newsletter</h4>
-              <p>Subscribe for exclusive offers and updates.</p>
-
-              <form onSubmit={handleSubscribe} className="footer__newsletter-form">
-                <div className="footer__newsletter-input-wrapper">
-                  <label htmlFor="footer-email" className="sr-only">
-                    Email address
-                  </label>
-                  <input
-                    type="email"
-                    id="footer-email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter your email"
-                    required
-                    aria-label="Email for newsletter"
-                  />
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    aria-label="Subscribe to newsletter"
-                  >
-                    {isSubmitting ? '...' : '→'}
-                  </button>
-                </div>
-
-                {subscribeStatus === 'success' && (
-                  <p className="footer__newsletter-status footer__newsletter-status--success">
-                    Thank you for subscribing!
-                  </p>
-                )}
-                {subscribeStatus === 'invalid' && (
-                  <p className="footer__newsletter-status footer__newsletter-status--error">
-                    Please enter a valid email.
-                  </p>
-                )}
-                {subscribeStatus === 'error' && (
-                  <p className="footer__newsletter-status footer__newsletter-status--error">
-                    Subscription failed. Try again.
-                  </p>
-                )}
-              </form>
-
-              {/* Awards Badges */}
+            {/* Awards Column */}
+            <div className="footer__awards-column">
+              <h4>Recognition</h4>
               <div className="footer__awards">
                 {AWARDS.map((award) => (
                   <div key={award.name} className="footer__award">
@@ -278,7 +225,13 @@ function Footer() {
               <ul>
                 {FOOTER_LINKS.legal.map((link) => (
                   <li key={link.label}>
-                    <a href={link.href}>{link.label}</a>
+                    <button
+                      type="button"
+                      onClick={() => openLegalModal(link.type)}
+                      className="footer__legal-btn"
+                    >
+                      {link.label}
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -286,6 +239,13 @@ function Footer() {
           </div>
         </div>
       </div>
+
+      {/* Legal Modal */}
+      <LegalModal
+        isOpen={legalModal.isOpen}
+        onClose={closeLegalModal}
+        pageType={legalModal.type}
+      />
 
       {/* Footer Styles */}
       <style>{`
@@ -313,14 +273,16 @@ function Footer() {
 
         @media (min-width: 1024px) {
           .footer__grid {
-            grid-template-columns: 2fr 1fr 1fr 1.5fr 2fr;
+            grid-template-columns: 2fr 1fr 1fr 1.8fr 2fr;
             gap: var(--space-8);
           }
         }
 
         /* Brand Column */
         .footer__logo {
-          display: inline-block;
+          display: inline-flex;
+          align-items: center;
+          gap: var(--space-4);
           font-family: var(--font-primary);
           font-size: var(--text-2xl);
           font-weight: var(--font-weight-playfair-bold);
@@ -337,6 +299,14 @@ function Footer() {
           transition: transform 0.3s ease;
         }
 
+        .footer__brand-title {
+          font-family: var(--font-primary);
+          font-size: var(--text-xl);
+          font-weight: var(--font-weight-playfair-bold);
+          color: var(--luxe-gold);
+          letter-spacing: 0.02em;
+        }
+
         .footer__logo:hover .footer__logo-img {
           transform: scale(1.05);
         }
@@ -345,7 +315,8 @@ function Footer() {
           font-size: var(--text-sm);
           line-height: var(--leading-relaxed);
           margin-bottom: var(--space-6);
-          opacity: 0.85;
+          color: var(--pure-white);
+          opacity: 0.95;
         }
 
         /* Social Icons - FR-10.5 */
@@ -358,22 +329,21 @@ function Footer() {
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 40px;
-          height: 40px;
+          width: 38px;
+          height: 38px;
           background: rgba(212, 175, 55, 0.1);
           border: 1px solid rgba(212, 175, 55, 0.3);
-          color: var(--cream-elegant);
+          color: var(--luxe-gold);
           border-radius: 50%;
-          font-size: var(--text-xs);
-          font-weight: var(--font-weight-montserrat-semibold);
-          transition: all 0.3s ease;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .footer__social-link:hover {
           background: var(--luxe-gold);
           border-color: var(--luxe-gold);
           color: var(--charcoal-darker);
-          transform: translateY(-3px);
+          transform: translateY(-4px);
+          box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
         }
 
         .footer__social-link:focus-visible {
@@ -402,14 +372,16 @@ function Footer() {
         }
 
         .footer__nav a {
+          display: inline-block;
           color: var(--cream-elegant);
           font-size: var(--text-sm);
-          transition: color 0.3s ease, padding-left 0.3s ease;
+          transition: all 0.3s ease;
+          white-space: nowrap;
         }
 
         .footer__nav a:hover {
           color: var(--luxe-gold);
-          padding-left: var(--space-2);
+          transform: translateX(6px);
         }
 
         .footer__nav a:focus-visible {
@@ -418,122 +390,83 @@ function Footer() {
         }
 
         /* Contact Column - FR-10.3 */
-        .footer__contact address {
-          font-style: normal;
-          font-size: var(--text-sm);
-          line-height: var(--leading-relaxed);
+        .footer__contact-items {
+          display: flex;
+          flex-direction: column;
+          gap: var(--space-3);
         }
 
-        .footer__contact a {
+        .footer__contact-item {
+          display: flex;
+          align-items: flex-start;
+          gap: var(--space-4);
+          font-size: var(--text-sm);
+          line-height: 1.6;
+          color: var(--pure-white);
+        }
+
+        .footer__contact-item svg {
+          margin-top: 3px;
+          flex-shrink: 0;
+          opacity: 0.9;
+        }
+
+        .footer__contact-item a {
+          color: var(--pure-white);
+          transition: color 0.3s ease;
+        }
+
+        .footer__contact-item a:hover {
+          color: var(--luxe-gold);
+          text-decoration: none;
+        }
+
+        .text-gold {
           color: var(--luxe-gold);
         }
 
-        .footer__contact a:hover {
-          text-decoration: underline;
-        }
-
-        /* Newsletter - FR-10.4 */
-        .footer__newsletter p {
-          font-size: var(--text-sm);
-          margin-bottom: var(--space-4);
-          opacity: 0.85;
-        }
-
-        .footer__newsletter-form {
-          margin-bottom: var(--space-6);
-        }
-
-        .footer__newsletter-input-wrapper {
-          display: flex;
-          border: 2px solid rgba(212, 175, 55, 0.3);
-          border-radius: var(--radius-full);
-          overflow: hidden;
-          transition: border-color 0.3s ease;
-        }
-
-        .footer__newsletter-input-wrapper:focus-within {
-          border-color: var(--luxe-gold);
-        }
-
-        .footer__newsletter-input-wrapper input {
-          flex: 1;
-          padding: var(--space-3) var(--space-5);
-          background: transparent;
-          border: none;
-          color: var(--pure-white);
-          font-size: var(--text-sm);
-        }
-
-        .footer__newsletter-input-wrapper input::placeholder {
-          color: var(--cream-elegant);
-          opacity: 0.6;
-        }
-
-        .footer__newsletter-input-wrapper input:focus {
-          outline: none;
-        }
-
-        .footer__newsletter-input-wrapper button {
-          padding: var(--space-3) var(--space-5);
-          background: var(--luxe-gold);
-          border: none;
-          color: var(--charcoal-darker);
-          font-size: var(--text-lg);
-          cursor: pointer;
-          transition: background 0.3s ease;
-        }
-
-        .footer__newsletter-input-wrapper button:hover {
-          background: var(--gold-metallic);
-        }
-
-        .footer__newsletter-input-wrapper button:disabled {
-          opacity: 0.7;
-          cursor: wait;
-        }
-
-        .footer__newsletter-status {
-          font-size: var(--text-xs);
-          margin-top: var(--space-2);
-        }
-
-        .footer__newsletter-status--success {
-          color: #22c55e;
-        }
-
-        .footer__newsletter-status--error {
-          color: #ef4444;
-        }
-
         /* Awards */
+        .footer__awards-column h4 {
+          font-family: var(--font-primary);
+          font-size: var(--text-lg);
+          color: var(--pure-white);
+          margin-bottom: var(--space-4);
+        }
+
         .footer__awards {
           display: flex;
           flex-direction: column;
-          gap: var(--space-2);
+          gap: var(--space-3);
         }
 
         .footer__award {
           display: flex;
           align-items: center;
-          gap: var(--space-2);
-          font-size: var(--text-xs);
-          padding: var(--space-2);
-          background: rgba(212, 175, 55, 0.1);
-          border-radius: var(--radius-sm);
+          justify-content: space-between;
+          gap: var(--space-3);
+          font-size: var(--text-sm);
+          padding: var(--space-3) var(--space-4);
+          background: rgba(212, 175, 55, 0.08);
+          border: 1px solid rgba(212, 175, 55, 0.15);
+          border-radius: var(--radius-md);
         }
 
         .footer__award-icon {
-          font-size: 1rem;
+          font-size: 1.1rem;
+          flex-shrink: 0;
         }
 
         .footer__award-name {
           flex: 1;
-          color: var(--cream-elegant);
+          color: var(--pure-white);
+          font-weight: 500;
+          white-space: nowrap;
         }
 
         .footer__award-year {
           color: var(--luxe-gold);
-          font-weight: var(--font-weight-montserrat-medium);
+          font-weight: var(--font-weight-montserrat-semibold);
+          white-space: nowrap;
         }
 
         /* Footer Bottom - FR-10.6, FR-10.7 */
@@ -575,14 +508,19 @@ function Footer() {
           margin: 0;
         }
 
-        .footer__legal a {
+        .footer__legal-btn {
+          background: none;
+          border: none;
           color: var(--cream-elegant);
           font-size: var(--text-sm);
+          font-family: inherit;
           opacity: 0.7;
+          cursor: pointer;
+          padding: 0;
           transition: opacity 0.3s ease, color 0.3s ease;
         }
 
-        .footer__legal a:hover {
+        .footer__legal-btn:hover {
           opacity: 1;
           color: var(--luxe-gold);
         }
