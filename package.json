@@ -5,7 +5,7 @@
     "description": "Luxury hotel static SPA for Andalusian Castle",
     "author": "Andalusian Castle",
     "license": "UNLICENSED",
-    "homepage": "https://mujahidkhanofficial.github.io/AndalusianCastle/",
+    "homepage": "https://andalusiancastle.com/",
     "scripts": {
         "start": "react-scripts start",
         "build": "react-scripts build",
