@@ -10,9 +10,11 @@
  * @version 2.0.0
  */
 
-import React, { lazy } from 'react';
+import React, { lazy, useState, useEffect, useCallback } from 'react';
 import { HERO_CONTENT } from './data/content';
 import LazySection from './components/common/LazySection';
+import Preloader from './components/common/Preloader';
+import WhatsAppButton from './components/common/WhatsAppButton';
 
 // ============================================================
 // CRITICAL PATH - Load immediately for fast LCP
@@ -26,7 +28,7 @@ import Hero from './components/sections/Hero';
 // LAZY LOADED - Below-fold sections loaded on demand
 // Each section is code-split into its own chunk
 // ============================================================
-const Rooms = lazy(() => import('./components/sections/Rooms'));
+const Apartments = lazy(() => import('./components/sections/Apartments'));
 const Amenities = lazy(() => import('./components/sections/Amenities'));
 const TourGuide = lazy(() => import('./components/sections/TourGuide'));
 const Gallery = lazy(() => import('./components/sections/Gallery'));
@@ -42,8 +44,36 @@ const Footer = lazy(() => import('./components/layout/Footer'));
  * @returns {React.ReactElement} The complete Andalusian Castle website
  */
 function App() {
+    const [isLoading, setIsLoading] = useState(true);
+    const [isHeroAnimating, setIsHeroAnimating] = useState(false);
+
+    // Callback when critical content (Hero video) is ready
+    const handleContentReady = useCallback(() => {
+        // 1. Hide Preloader
+        setIsLoading(false);
+
+        // 2. Trigger Hero Animations after Preloader fade-out (2000ms buffer)
+        // This ensures the preloader is completely gone AND the video has started fading in
+        setTimeout(() => {
+            setIsHeroAnimating(true);
+        }, 100);
+    }, []);
+
+    // Safety timeout: Disable loader after 12 seconds max (for slow connections)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (isLoading) {
+                console.warn("Safety timeout triggered: Forcing content reveal.");
+                handleContentReady();
+            }
+        }, 12000);
+        return () => clearTimeout(timer);
+    }, [isLoading, handleContentReady]);
+
     return (
         <div className="app">
+            <Preloader isLoading={isLoading} />
+
             {/* ========== CRITICAL PATH - Above the fold ========== */}
 
             {/* Navigation - Fixed/Sticky on scroll */}
@@ -55,13 +85,17 @@ function App() {
             {/* Main Content Sections */}
             <main>
                 {/* Hero Section - Full viewport with adaptive video */}
-                <Hero {...HERO_CONTENT} />
+                <Hero
+                    {...HERO_CONTENT}
+                    onReady={handleContentReady}
+                    startAnimation={isHeroAnimating}
+                />
 
                 {/* ========== LAZY LOADED - Below the fold ========== */}
 
-                {/* Rooms & Suites Section */}
+                {/* Apartments & Suites Section */}
                 <LazySection minHeight="600px">
-                    <Rooms />
+                    <Apartments />
                 </LazySection>
 
                 {/* Amenities & Facilities Section */}
@@ -94,6 +128,9 @@ function App() {
             <LazySection minHeight="300px">
                 <Footer />
             </LazySection>
+
+            {/* Global Sticky WhatsApp Button */}
+            <WhatsAppButton />
         </div>
     );
 }

@@ -71,16 +71,14 @@ function getConnectionInfo() {
 function AdaptiveVideo({
     fullVideoSrc,
     compressedVideoSrc,
-    posterSrc,
     className = '',
     autoPlay = true,
     muted = true,
     loop = true,
+    onReady, // Callback to signal App to hide preloader
 }) {
     const [isVisible, setIsVisible] = useState(false);
     const [videoLoaded, setVideoLoaded] = useState(false);
-    const [videoError, setVideoError] = useState(false);
-    const [showPlayButton, setShowPlayButton] = useState(false);
     const [connectionInfo, setConnectionInfo] = useState(() => getConnectionInfo());
 
     const containerRef = useRef(null);
@@ -89,27 +87,21 @@ function AdaptiveVideo({
 
     // Determine which video source to load
     const getVideoSource = useCallback(() => {
-        if (videoError) return null;
-
+        // Always prefer full video if possible, but fallback to compressed.
+        // We removed logic that returns 'null' for slow connections to force video load.
         if (connectionInfo.canLoadFullVideo && fullVideoSrc) {
             return fullVideoSrc;
         }
-
-        if (connectionInfo.canLoadAnyVideo && compressedVideoSrc) {
-            return compressedVideoSrc;
-        }
-
-        return null;
-    }, [connectionInfo, fullVideoSrc, compressedVideoSrc, videoError]);
+        return compressedVideoSrc || fullVideoSrc;
+    }, [connectionInfo, fullVideoSrc, compressedVideoSrc]);
 
     const videoSrc = getVideoSource();
-    const shouldShowPoster = !videoSrc || !videoLoaded || videoError;
 
     // Intersection Observer for lazy loading
     useEffect(() => {
         const options = {
             root: null,
-            rootMargin: '200px', // Start loading 200px before visible
+            rootMargin: '200px',
             threshold: 0,
         };
 
@@ -117,7 +109,6 @@ function AdaptiveVideo({
             entries.forEach((entry) => {
                 if (entry.isIntersecting) {
                     setIsVisible(true);
-                    // Once visible, stop observing
                     if (observerRef.current && containerRef.current) {
                         observerRef.current.unobserve(containerRef.current);
                     }
@@ -130,104 +121,30 @@ function AdaptiveVideo({
         }
 
         return () => {
-            if (observerRef.current) {
-                observerRef.current.disconnect();
-            }
+            if (observerRef.current) observerRef.current.disconnect();
         };
     }, []);
 
-    // Listen for connection changes
-    useEffect(() => {
-        const connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
-
-        if (connection) {
-            const handleChange = () => {
-                setConnectionInfo(getConnectionInfo());
-            };
-
-            connection.addEventListener('change', handleChange);
-            return () => connection.removeEventListener('change', handleChange);
-        }
-    }, []);
-
-    // Video event handlers
+    // Handle video load success
     const handleVideoLoaded = useCallback(() => {
         setVideoLoaded(true);
-        setVideoError(false);
-    }, []);
+        if (onReady) onReady(); // Signal to App that content is ready
+    }, [onReady]);
 
+    // Handle video error (fallback safety)
     const handleVideoError = useCallback(() => {
-        setVideoError(true);
-        setShowPlayButton(false);
-    }, []);
-
-    // Play video when clicking poster
-    const handlePlayClick = useCallback(() => {
-        if (videoRef.current) {
-            videoRef.current.play().catch(() => {
-                // Autoplay blocked, show controls
-                setShowPlayButton(true);
-            });
-        }
-    }, []);
-
-    // Cleanup on unmount
-    useEffect(() => {
-        return () => {
-            if (videoRef.current) {
-                videoRef.current.pause();
-                videoRef.current.src = '';
-                videoRef.current.load();
-            }
-        };
-    }, []);
-
-    // If no video should load, show poster only with optional play button
-    if (!connectionInfo.canLoadAnyVideo && !videoError) {
-        return (
-            <div ref={containerRef} className={`adaptive-video ${className}`}>
-                <img
-                    src={posterSrc}
-                    alt=""
-                    className="adaptive-video__poster"
-                    loading="eager"
-                    decoding="sync"
-                    fetchpriority="high"
-                />
-
-                {/* Play button overlay for manual video load */}
-                <button
-                    className="adaptive-video__play-btn"
-                    onClick={() => {
-                        setConnectionInfo(prev => ({ ...prev, canLoadAnyVideo: true }));
-                    }}
-                    aria-label="Play video"
-                >
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="48" height="48">
-                        <path d="M8 5v14l11-7z" />
-                    </svg>
-                </button>
-
-                <style>{adaptiveVideoStyles}</style>
-            </div>
-        );
-    }
+        console.warn("Video failed to load, triggering ready anyway to lift curtain.");
+        if (onReady) onReady();
+    }, [onReady]);
 
     return (
         <div ref={containerRef} className={`adaptive-video ${className}`}>
-            {/* Poster image - always visible until video loads */}
-            {shouldShowPoster && (
-                <img
-                    src={posterSrc}
-                    alt=""
-                    className={`adaptive-video__poster ${videoLoaded ? 'adaptive-video__poster--hidden' : ''}`}
-                    loading="eager"
-                    decoding="sync"
-                    fetchpriority="high"
-                />
-            )}
-
-            {/* Video element - only mount when visible */}
+            {/* 
+              Video Element
+              - Opacity starts at 0 (invisible).
+              - transitions to 1 once 'videoLoaded' is true.
+              - This masks buffering/black frames behind the global preloader.
+            */}
             {isVisible && videoSrc && (
                 <video
                     ref={videoRef}
@@ -237,24 +154,18 @@ function AdaptiveVideo({
                     loop={loop}
                     playsInline
                     preload="auto"
-                    onLoadedData={handleVideoLoaded}
+                    onCanPlay={handleVideoLoaded} // Wait for enough data to play securely
+                    onLoadedData={() => {
+                        // Fallback: If onCanPlay doesn't fire for some reason but data is loaded,
+                        // we can check readyState manually or wait.
+                        if (videoRef.current && videoRef.current.readyState >= 3) {
+                            handleVideoLoaded();
+                        }
+                    }}
                     onError={handleVideoError}
                 >
                     <source src={process.env.PUBLIC_URL + videoSrc} type="video/mp4" />
                 </video>
-            )}
-
-            {/* Play button for blocked autoplay */}
-            {showPlayButton && (
-                <button
-                    className="adaptive-video__play-btn"
-                    onClick={handlePlayClick}
-                    aria-label="Play video"
-                >
-                    <svg viewBox="0 0 24 24" fill="currentColor" width="48" height="48">
-                        <path d="M8 5v14l11-7z" />
-                    </svg>
-                </button>
             )}
 
             <style>{adaptiveVideoStyles}</style>
@@ -268,9 +179,9 @@ const adaptiveVideoStyles = `
     width: 100%;
     height: 100%;
     overflow: hidden;
+    background: #000; /* Deep black background while loading */
   }
 
-  .adaptive-video__poster,
   .adaptive-video__video {
     position: absolute;
     top: 0;
@@ -278,57 +189,13 @@ const adaptiveVideoStyles = `
     width: 100%;
     height: 100%;
     object-fit: cover;
-  }
-
-  .adaptive-video__poster {
     z-index: 1;
-    transition: opacity 0.5s ease;
-  }
-
-  .adaptive-video__poster--hidden {
     opacity: 0;
-    pointer-events: none;
-  }
-
-  .adaptive-video__video {
-    z-index: 0;
-    opacity: 0;
-    transition: opacity 0.5s ease;
+    transition: opacity 1.5s ease-out; /* Smooth fade-in */
   }
 
   .adaptive-video__video--loaded {
     opacity: 1;
-    z-index: 1;
-  }
-
-  .adaptive-video__play-btn {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 10;
-    width: 80px;
-    height: 80px;
-    border: none;
-    border-radius: 50%;
-    background: rgba(212, 175, 55, 0.9);
-    color: #1a1a1a;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  }
-
-  .adaptive-video__play-btn:hover {
-    background: #d4af37;
-    transform: translate(-50%, -50%) scale(1.1);
-    box-shadow: 0 6px 30px rgba(212, 175, 55, 0.5);
-  }
-
-  .adaptive-video__play-btn svg {
-    margin-left: 4px; /* Visual centering for play icon */
   }
 `;
 

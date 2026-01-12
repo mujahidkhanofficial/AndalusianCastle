@@ -40,3 +40,5 @@ lighthouse-report.html
 
 # Optional: Local config files
 config.local.js
+.vercel
+.env*.local

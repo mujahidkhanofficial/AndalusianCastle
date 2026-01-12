@@ -1,47 +1,52 @@
 /**
- * @fileoverview Rooms & Suites Section with Interactive Cards and Lightbox.
- * Implements FR-3.1 through FR-3.7 from SRS Section 3.1.3.
+ * @fileoverview Luxury Apartments Section with Interactive Cards and Lightbox.
  * Features lazy-loaded images, hover effects, and modal gallery.
  * @version 3.0.0
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Wifi, Tv, Wine, Lock, Snowflake, Bath, Sunset, Waves } from 'lucide-react';
+import {
+  Wifi, Tv, Lock, Snowflake, Bath, Sunset, Waves,
+  ChevronLeft, ChevronRight, X, Maximize2
+} from 'lucide-react';
 
 /**
- * Room data with gallery images.
+ * Apartment data with gallery images.
  * @type {Array<Object>}
  */
-const ROOMS_DATA = [
+const APARTMENTS_DATA = [
   {
-    id: 'normal-room',
-    name: 'Normal Room',
-    description: 'Experience the comfort of our Normal Rooms, designed for relaxation and convenience. Perfect base for your stay in Lahore.',
-    price: '₨7,500',
+    id: 'luxury-apartment-40',
+    name: 'Luxury Apartment',
+    description: 'Experience the comfort of our luxury apartments, designed for relaxation and convenience. Perfect base for your stay in Lahore.',
+    price: '7,500 PKR',
     priceNote: 'All taxes included',
     image: '/images/dining/dining-03-feast.webp',
     amenities: ['wifi', 'tv', 'ac', 'shower'],
-    features: ['Queen-size bed', '35 sqm', 'City view', 'En-suite bathroom'],
+    features: ['Queen-size bed', '40 sq feet', 'City view', 'En-suite bathroom'],
+    whatsappMessage: 'Hi! I would like to book the Luxury Apartment. Please let me know the availability.',
     gallery: [
-      '/images/rooms/rooms-01-luxury.webp',
-      '/images/rooms/rooms-02-comfort.webp',
-      '/images/rooms/rooms-03-stay.webp',
+      '/images/apartment_details/01.webp',
+      '/images/apartment_details/02.webp',
+      '/images/apartment_details/03.webp',
+      '/images/apartment_details/04.webp',
     ],
   },
   {
-    id: 'luxury-suite',
-    name: 'Luxury Suite',
-    description: 'Upgrade to our Luxury Suite for an elevated experience. Premium furnishings, enhanced amenities, and superior views of Bahria Town.',
-    price: '₨10,000',
+    id: 'super-luxury-apartment-55',
+    name: 'Super Luxury Apartment',
+    description: 'Upgrade to our Super Luxury Apartment for an elevated experience. Premium furnishings, enhanced amenities, and superior views of Bahria Town.',
+    price: '10,000 PKR',
     priceNote: 'All taxes included',
     image: '/images/events/events-04-wedding.webp',
-    amenities: ['wifi', 'tv', 'minibar', 'ac', 'bathtub', 'breakfast'],
-    features: ['King-size bed', '55 sqm', 'Garden/City View', 'Complimentary Breakfast'],
+    amenities: ['wifi', 'tv', 'ac', 'bathtub'],
+    features: ['King-size bed', '55 sq feet', 'Garden/City View', 'Complimentary Breakfast'],
+    whatsappMessage: 'Hi! I am interested in booking the Super Luxury Apartment. Could you please provide more details?',
     gallery: [
-      '/images/rooms/rooms-07-suite.webp',
-      '/images/rooms/rooms-08-relax.webp',
-      '/images/rooms/rooms-09-bed.webp',
-      '/images/rooms/rooms-10-luxury.webp',
+      '/images/apartment_details/01.webp',
+      '/images/apartment_details/02.webp',
+      '/images/apartment_details/03.webp',
+      '/images/apartment_details/04.webp',
     ],
   },
 ];
@@ -52,44 +57,36 @@ const ROOMS_DATA = [
 const AMENITY_ICONS = {
   wifi: <Wifi size={20} />,
   tv: <Tv size={20} />,
-  minibar: <Wine size={20} />,
   safe: <Lock size={20} />,
   ac: <Snowflake size={20} />,
   bathtub: <Bath size={20} />,
   terrace: <Sunset size={20} />,
   pool: <Waves size={20} />,
-  shower: <Waves size={20} />, // Fallback/reuse for shower if no specific icon
+  shower: <Waves size={20} />,
 };
 
 /**
- * Rooms & Suites section component.
- * 
- * Features (per SRS Section 3.1.3):
- * - FR-3.1: Display 4 room categories with images
- * - FR-3.2: Room cards with image, name, description, features, price
- * - FR-3.3: Hover effects revealing additional info
- * - FR-3.4: "View Details" button for each room
- * - FR-3.5: Image gallery modal for room photos
- * - FR-3.6: Room amenities icons
- * - FR-3.7: Staggered fade-in animation on scroll
+ * Apartments section component.
  * 
  * @component
- * @returns {React.ReactElement} Rooms section element
+ * @returns {React.ReactElement} Apartments section element
  */
-function Rooms() {
-  // Lightbox state - FR-3.5
+function Apartments() {
   const [lightbox, setLightbox] = useState({
     isOpen: false,
-    room: null,
+    apartment: null,
     currentIndex: 0,
   });
 
-  // Intersection Observer for animations - FR-3.7
   const [visibleCards, setVisibleCards] = useState(new Set());
   const cardsRef = useRef([]);
   const sectionRef = useRef(null);
+  const thumbsRef = useRef(null);
 
-  // Setup Intersection Observer for fade-in animations
+  // Touch tracking for swipe
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+
   useEffect(() => {
     const observerOptions = {
       root: null,
@@ -113,26 +110,23 @@ function Rooms() {
     return () => observer.disconnect();
   }, []);
 
-  // Open lightbox gallery
-  const openLightbox = useCallback((room) => {
+  const openLightbox = useCallback((apartment) => {
     setLightbox({
       isOpen: true,
-      room,
+      apartment,
       currentIndex: 0,
     });
     document.body.style.overflow = 'hidden';
   }, []);
 
-  // Close lightbox
   const closeLightbox = useCallback(() => {
     setLightbox((prev) => ({ ...prev, isOpen: false }));
     document.body.style.overflow = '';
   }, []);
 
-  // Navigate lightbox
   const navigateLightbox = useCallback((direction) => {
     setLightbox((prev) => {
-      const totalImages = prev.room?.gallery.length || 0;
+      const totalImages = prev.apartment?.gallery.length || 0;
       let newIndex = prev.currentIndex + direction;
       if (newIndex < 0) newIndex = totalImages - 1;
       if (newIndex >= totalImages) newIndex = 0;
@@ -140,7 +134,27 @@ function Rooms() {
     });
   }, []);
 
-  // Keyboard navigation for lightbox
+  const goToSlide = (index) => {
+    setLightbox(prev => ({ ...prev, currentIndex: index }));
+  };
+
+  // --- Swipe Logic ---
+  const handleTouchStart = (e) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartX.current - touchEndX.current;
+    if (Math.abs(diff) > 50) {
+      if (diff > 0) navigateLightbox(1);
+      else navigateLightbox(-1);
+    }
+  };
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!lightbox.isOpen) return;
@@ -153,69 +167,75 @@ function Rooms() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [lightbox.isOpen, closeLightbox, navigateLightbox]);
 
+  // Scroll active thumbnail into view
+  useEffect(() => {
+    const container = thumbsRef.current;
+    if (lightbox.isOpen && container) {
+      const activeThumb = container.querySelector('.rooms__thumb--active');
+      if (activeThumb) {
+        const scrollLeft = activeThumb.offsetLeft - (container.offsetWidth / 2) + (activeThumb.offsetWidth / 2);
+        container.scrollTo({ left: scrollLeft, behavior: 'smooth' });
+      }
+    }
+  }, [lightbox.currentIndex, lightbox.isOpen]);
+
   return (
     <section
-      id="rooms"
+      id="apartments"
       ref={sectionRef}
       className="rooms section"
-      aria-labelledby="rooms-title"
+      aria-labelledby="apartments-title"
     >
       <div className="container">
-        {/* Section Header */}
         <header className="section-header text-center">
-          <h2 id="rooms-title" className="section-title">
-            Rooms & <span className="text-gold">Suites</span>
+          <h2 id="apartments-title" className="section-title">
+            Luxury <span className="text-gold">Apartments</span>
           </h2>
           <div className="divider-gold" aria-hidden="true" />
           <p className="section-subtitle">
-            Discover our collection of luxuriously appointed accommodations,
+            Discover our collection of luxuriously appointed apartments,
             each designed for ultimate comfort and elegance.
           </p>
         </header>
 
-        {/* Rooms Grid - FR-3.1 */}
         <div className="rooms__grid">
-          {ROOMS_DATA.map((room, index) => (
+          {APARTMENTS_DATA.map((apartment, index) => (
             <article
-              key={room.id}
+              key={apartment.id}
               ref={(el) => (cardsRef.current[index] = el)}
               data-index={index}
               className={`rooms__card ${visibleCards.has(String(index)) ? 'rooms__card--visible' : ''}`}
               style={{ transitionDelay: `${index * 150}ms` }}
             >
-              {/* Room Image - FR-3.2, Lazy Load */}
               <div className="rooms__card-image">
                 <img
-                  src={process.env.PUBLIC_URL + room.image}
-                  alt={`${room.name} at Andalusian Castle`}
+                  src={process.env.PUBLIC_URL + apartment.image}
+                  alt={`${apartment.name} at Andalusian Castle`}
                   loading="lazy"
                   decoding="async"
                 />
-                {/* Hover Overlay - FR-3.3 */}
                 <div className="rooms__card-overlay">
                   <ul className="rooms__features-list">
-                    {room.features.map((feature) => (
+                    {apartment.features.map((feature) => (
                       <li key={feature}>{feature}</li>
                     ))}
                   </ul>
                   <button
                     className="btn btn-secondary"
-                    onClick={() => openLightbox(room)}
-                    aria-label={`View gallery for ${room.name}`}
+                    onClick={() => openLightbox(apartment)}
+                    aria-label={`View gallery for ${apartment.name}`}
                   >
                     View Gallery
                   </button>
                 </div>
               </div>
 
-              {/* Room Content - FR-3.2 */}
               <div className="rooms__card-content">
-                <h3 className="rooms__card-title">{room.name}</h3>
-                <p className="rooms__card-description">{room.description}</p>
+                <h3 className="rooms__card-title">{apartment.name}</h3>
+                <p className="rooms__card-description">{apartment.description}</p>
 
-                {/* Amenities Icons - FR-3.6 */}
-                <div className="rooms__amenities" aria-label="Room amenities">
-                  {room.amenities.map((amenity) => (
+                <div className="rooms__amenities" aria-label="Apartment amenities">
+                  {apartment.amenities.map((amenity) => (
                     <span
                       key={amenity}
                       className="rooms__amenity"
@@ -228,28 +248,26 @@ function Rooms() {
                   ))}
                 </div>
 
-                {/* Price */}
                 <div className="rooms__price">
                   <span className="rooms__price-from">From</span>
-                  <span className="rooms__price-amount">{room.price}</span>
+                  <span className="rooms__price-amount">{apartment.price}</span>
                   <span className="rooms__price-per">/ night</span>
                 </div>
-                {room.priceNote && (
+                {apartment.priceNote && (
                   <div className="rooms__price-note" style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>
-                    {room.priceNote}
+                    {apartment.priceNote}
                   </div>
                 )}
 
-                {/* CTA Buttons - FR-3.4 */}
                 <div className="rooms__actions">
                   <button
                     className="btn btn-secondary rooms__cta"
-                    onClick={() => openLightbox(room)}
+                    onClick={() => openLightbox(apartment)}
                   >
                     View Details
                   </button>
                   <a
-                    href="https://wa.me/923166268625"
+                    href={`https://wa.me/923166268625?text=${encodeURIComponent(apartment.whatsappMessage)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="btn btn-primary rooms__cta"
@@ -263,74 +281,72 @@ function Rooms() {
         </div>
       </div>
 
-      {/* Lightbox Modal - FR-3.5 */}
-      {lightbox.isOpen && lightbox.room && (
+      {/* WhatsApp Style Lightbox */}
+      {lightbox.isOpen && lightbox.apartment && (
         <div
-          className="lightbox"
+          className="rooms__lightbox"
           role="dialog"
           aria-modal="true"
-          aria-label={`${lightbox.room.name} gallery`}
         >
-          <div className="lightbox__backdrop" onClick={closeLightbox} />
-
-          {/* Close Button */}
-          <button
-            className="lightbox__close"
-            onClick={closeLightbox}
-            aria-label="Close gallery"
-          >
-            ✕
-          </button>
-
-          {/* Previous Button */}
-          <button
-            className="lightbox__nav lightbox__nav--prev"
-            onClick={() => navigateLightbox(-1)}
-            aria-label="Previous image"
-          >
-            ‹
-          </button>
-
-          {/* Image Container */}
-          <div className="lightbox__content">
-            <img
-              src={process.env.PUBLIC_URL + lightbox.room.gallery[lightbox.currentIndex]}
-              alt={`${lightbox.room.name} - Image ${lightbox.currentIndex + 1}`}
-            />
-            <div className="lightbox__caption">
-              <h4>{lightbox.room.name}</h4>
-              <span className="lightbox__counter">
-                {lightbox.currentIndex + 1} / {lightbox.room.gallery.length}
+          {/* Top Bar */}
+          <div className="rooms__lightbox-top">
+            <div className="rooms__info">
+              <span className="rooms__lightbox-name">{lightbox.apartment.name}</span>
+              <span className="rooms__counter">
+                {lightbox.currentIndex + 1} / {lightbox.apartment.gallery.length}
               </span>
             </div>
+            <button className="rooms__close-btn" onClick={closeLightbox}>
+              <X size={28} />
+            </button>
           </div>
 
-          {/* Next Button */}
-          <button
-            className="lightbox__nav lightbox__nav--next"
-            onClick={() => navigateLightbox(1)}
-            aria-label="Next image"
+          {/* Main Content Area */}
+          <div
+            className="rooms__lightbox-center"
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
-            ›
-          </button>
+            <button className="rooms__lb-nav rooms__lb-nav--prev" onClick={() => navigateLightbox(-1)}>
+              <ChevronLeft size={36} />
+            </button>
 
-          {/* Thumbnails */}
-          <div className="lightbox__thumbnails">
-            {lightbox.room.gallery.map((img, idx) => (
-              <button
-                key={idx}
-                className={`lightbox__thumb ${idx === lightbox.currentIndex ? 'lightbox__thumb--active' : ''}`}
-                onClick={() => setLightbox((prev) => ({ ...prev, currentIndex: idx }))}
-                aria-label={`View image ${idx + 1}`}
-              >
-                <img src={process.env.PUBLIC_URL + img} alt={`${lightbox.room.name} view ${idx + 1}`} loading="lazy" decoding="async" />
-              </button>
-            ))}
+            <div className="rooms__main-image-wrapper">
+              <img
+                src={process.env.PUBLIC_URL + lightbox.apartment.gallery[lightbox.currentIndex]}
+                alt={`${lightbox.apartment.name} - Image ${lightbox.currentIndex + 1}`}
+                className="rooms__main-image"
+              />
+            </div>
+
+            <button className="rooms__lb-nav rooms__lb-nav--next" onClick={() => navigateLightbox(1)}>
+              <ChevronRight size={36} />
+            </button>
+          </div>
+
+          {/* Bottom Thumbnails Strip */}
+          <div className="rooms__lightbox-bottom">
+            <div className="rooms__thumbs-container" ref={thumbsRef}>
+              {lightbox.apartment.gallery.map((img, idx) => (
+                <button
+                  key={idx}
+                  className={`rooms__thumb ${idx === lightbox.currentIndex ? 'rooms__thumb--active' : ''}`}
+                  onClick={() => goToSlide(idx)}
+                >
+                  <img
+                    src={process.env.PUBLIC_URL + img}
+                    alt={`${lightbox.apartment.name} thumbnail`}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
 
-      {/* Rooms Section Styles */}
       <style>{`
         .rooms {
           background-color: var(--cream-light);
@@ -357,7 +373,6 @@ function Rooms() {
           }
         }
 
-        /* Room Card */
         .rooms__card {
           background: var(--pure-white);
           border: 1px solid rgba(212, 175, 55, 0.2);
@@ -380,7 +395,6 @@ function Rooms() {
           border-color: var(--luxe-gold);
         }
 
-        /* Card Image */
         .rooms__card-image {
           position: relative;
           aspect-ratio: 4 / 3;
@@ -398,7 +412,6 @@ function Rooms() {
           transform: scale(1.1);
         }
 
-        /* Hover Overlay - FR-3.3 */
         .rooms__card-overlay {
           position: absolute;
           inset: 0;
@@ -443,7 +456,6 @@ function Rooms() {
           font-weight: bold;
         }
 
-        /* Card Content */
         .rooms__card-content {
           padding: var(--space-6);
         }
@@ -464,7 +476,6 @@ function Rooms() {
           opacity: 0.85;
         }
 
-        /* Amenities - FR-3.6 */
         .rooms__amenities {
           display: flex;
           gap: var(--space-3);
@@ -486,7 +497,6 @@ function Rooms() {
           transform: scale(1.2);
         }
 
-        /* Price */
         .rooms__price {
           display: flex;
           align-items: baseline;
@@ -513,7 +523,6 @@ function Rooms() {
           opacity: 0.7;
         }
 
-        /* Actions */
         .rooms__actions {
           display: flex;
           gap: var(--space-3);
@@ -531,168 +540,160 @@ function Rooms() {
           font-size: var(--text-sm);
         }
 
-        /* Lightbox Modal */
-        .lightbox {
+        /* WhatsApp Style Lightbox */
+        .rooms__lightbox {
           position: fixed;
           inset: 0;
-          z-index: var(--z-modal);
+          background: #000;
+          z-index: 9999;
           display: flex;
-          align-items: center;
-          justify-content: center;
+          flex-direction: column;
         }
 
-        .lightbox__backdrop {
-          position: absolute;
-          inset: 0;
-          background: rgba(0, 0, 0, 0.95);
-        }
-
-        .lightbox__close {
-          position: absolute;
-          top: var(--space-6);
-          right: var(--space-6);
-          background: none;
-          border: none;
-          color: var(--pure-white);
-          font-size: var(--text-2xl);
-          cursor: pointer;
-          z-index: 10;
-          width: 48px;
-          height: 48px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border-radius: 50%;
-          transition: background 0.3s ease, color 0.3s ease;
-        }
-
-        .lightbox__close:hover {
-          background: var(--luxe-gold);
-          color: var(--charcoal-darker);
-        }
-
-        .lightbox__close:focus-visible {
-          outline: 2px solid var(--luxe-gold);
-          outline-offset: 4px;
-        }
-
-        .lightbox__nav {
-          position: absolute;
-          top: 50%;
-          transform: translateY(-50%);
-          background: rgba(255, 255, 255, 0.1);
-          border: none;
-          color: var(--pure-white);
-          font-size: 3rem;
-          width: 60px;
-          height: 80px;
-          cursor: pointer;
-          z-index: 10;
-          transition: background 0.3s ease, color 0.3s ease;
-        }
-
-        .lightbox__nav:hover {
-          background: var(--luxe-gold);
-          color: var(--charcoal-darker);
-        }
-
-        .lightbox__nav:focus-visible {
-          outline: 2px solid var(--luxe-gold);
-          outline-offset: 4px;
-        }
-
-        .lightbox__nav--prev {
-          left: var(--space-4);
-          border-radius: var(--radius-md);
-        }
-
-        .lightbox__nav--next {
-          right: var(--space-4);
-          border-radius: var(--radius-md);
-        }
-
-        .lightbox__content {
-          position: relative;
-          max-width: 90vw;
-          max-height: 75vh;
-          z-index: 5;
-        }
-
-        .lightbox__content img {
-          max-width: 100%;
-          max-height: 70vh;
-          object-fit: contain;
-          border-radius: var(--radius-lg);
-          box-shadow: var(--shadow-2xl);
-        }
-
-        .lightbox__caption {
-          position: absolute;
-          bottom: -50px;
-          left: 0;
-          right: 0;
+        .rooms__lightbox-top {
           display: flex;
           justify-content: space-between;
           align-items: center;
-          color: var(--cream-elegant);
+          padding: var(--space-6) var(--space-8);
+          background: rgba(0,0,0,0.9);
+          color: white;
+          z-index: 20;
+          border-bottom: 1px solid rgba(255,255,255,0.1);
         }
 
-        .lightbox__caption h4 {
-          font-family: var(--font-primary);
-          font-size: var(--text-xl);
-          color: var(--pure-white);
-          margin: 0;
+        .rooms__info {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
         }
 
-        .lightbox__counter {
-          font-size: var(--text-sm);
+        .rooms__counter {
+          font-size: 0.85rem;
+          opacity: 0.7;
+          font-weight: 600;
           color: var(--luxe-gold);
         }
 
-        .lightbox__thumbnails {
-          position: absolute;
-          bottom: var(--space-6);
-          left: 50%;
-          transform: translateX(-50%);
-          display: flex;
-          gap: var(--space-2);
-          z-index: 10;
+        .rooms__lightbox-name {
+          font-size: 1.25rem;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          font-family: var(--font-primary);
         }
 
-        .lightbox__thumb {
-          width: 60px;
-          height: 45px;
-          padding: 0;
-          border: 2px solid transparent;
-          border-radius: var(--radius-sm);
-          overflow: hidden;
+        .rooms__close-btn {
+          background: rgba(255, 255, 255, 0.1);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: white;
+          border-radius: 50%;
           cursor: pointer;
-          opacity: 0.6;
-          transition: opacity 0.3s ease, border-color 0.3s ease;
+          width: 44px;
+          height: 44px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s ease;
+        }
+        .rooms__close-btn:hover { background: var(--luxe-gold); color: white; transform: rotate(90deg); border-color: var(--luxe-gold); }
+
+        .rooms__lightbox-center {
+          flex: 1;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          overflow: hidden;
+          background: #050505;
         }
 
-        .lightbox__thumb:hover,
-        .lightbox__thumb--active {
-          opacity: 1;
-          border-color: var(--luxe-gold);
-        }
-
-        .lightbox__thumb img {
+        .rooms__main-image-wrapper {
           width: 100%;
           height: 100%;
-          object-fit: cover;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: var(--space-4);
+          z-index: 5;
         }
 
-        @media (max-width: 767px) {
-          .lightbox__nav {
-            width: 44px;
-            height: 60px;
-            font-size: 2rem;
-          }
+        .rooms__main-image {
+          max-width: 100%;
+          max-height: 100%;
+          object-fit: contain;
+          box-shadow: 0 0 100px rgba(0,0,0,1);
+          border-radius: var(--radius-sm);
+          z-index: 10;
+          position: relative;
+        }
 
-          .lightbox__thumbnails {
-            display: none;
-          }
+        .rooms__lb-nav {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          background: rgba(0, 0, 0, 0.5);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          color: white;
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          z-index: 30;
+          backdrop-filter: blur(10px);
+        }
+
+        .rooms__lb-nav:hover { background: var(--luxe-gold); border-color: var(--luxe-gold); }
+        .rooms__lb-nav--prev { left: var(--space-6); }
+        .rooms__lb-nav--next { right: var(--space-6); }
+
+        @media (max-width: 768px) {
+          .rooms__lb-nav { display: none; }
+        }
+
+        /* Thumbstrip */
+        .rooms__lightbox-bottom {
+          padding: var(--space-6) 0;
+          background: rgba(0,0,0,0.9);
+          border-top: 1px solid rgba(255,255,255,0.1);
+          z-index: 20;
+        }
+
+        .rooms__thumbs-container {
+          display: flex;
+          gap: 12px;
+          padding: 0 var(--space-8);
+          overflow-x: auto;
+          scrollbar-width: none;
+          justify-content: flex-start;
+          width: max-content;
+          margin: 0 auto;
+          max-width: 90vw;
+        }
+
+        .rooms__thumbs-container::-webkit-scrollbar { display: none; }
+
+        .rooms__thumb {
+          width: 60px;
+          height: 60px;
+          flex-shrink: 0;
+          border-radius: var(--radius-sm);
+          overflow: hidden;
+          background: #333;
+          border: 2px solid transparent;
+          cursor: pointer;
+          opacity: 0.5;
+          padding: 0;
+          transition: all 0.3s ease;
+        }
+
+        .rooms__thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .rooms__thumb--active {
+          opacity: 1;
+          border-color: var(--luxe-gold);
+          transform: scale(1.1);
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -706,4 +707,4 @@ function Rooms() {
   );
 }
 
-export default Rooms;
+export default Apartments;

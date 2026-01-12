@@ -217,7 +217,16 @@ function Footer() {
           <div className="footer__bottom-content">
             {/* Copyright - FR-10.6 */}
             <p className="footer__copyright">
-              © {currentYear} Andalusian Castle. All rights reserved.
+              © {currentYear} Andalusian Castle. Developed by{' '}
+              <a
+                href="https://wa.me/923139330041"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="footer__developer-link"
+              >
+                Mujahid
+              </a>
+              .
             </p>
 
             {/* Legal Links - FR-10.7 */}
@@ -293,18 +302,21 @@ function Footer() {
         }
 
         .footer__logo-img {
-          height: 64px;
+          height: 90px; /* Significant increase relative to 64px */
           width: auto;
           display: block;
           transition: transform 0.3s ease;
         }
 
         .footer__brand-title {
-          font-family: var(--font-primary);
-          font-size: var(--text-xl);
-          font-weight: var(--font-weight-playfair-bold);
+          font-family: 'Sail', cursive;
+          font-size: 48px; /* High legibility and elegance */
+          font-weight: 400;
           color: var(--luxe-gold);
+          text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
           letter-spacing: 0.02em;
+          line-height: 1.2;
+          margin-top: 0px; /* Neutralize for Sail */
         }
 
         .footer__logo:hover .footer__logo-img {
@@ -498,6 +510,18 @@ function Footer() {
           margin: 0;
         }
 
+        .footer__developer-link {
+          color: inherit;
+          text-decoration: none;
+          transition: color 0.3s ease;
+          border-bottom: 1px dotted rgba(212, 175, 55, 0.5);
+        }
+
+        .footer__developer-link:hover {
+          color: var(--luxe-gold);
+          border-bottom-style: solid;
+        }
+
         .footer__legal ul {
           display: flex;
           flex-wrap: wrap;
@@ -545,7 +569,7 @@ function Footer() {
           }
         }
       `}</style>
-    </footer>
+    </footer >
   );
 }
 

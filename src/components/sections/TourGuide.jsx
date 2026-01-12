@@ -245,12 +245,31 @@ function TourGuide() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(true);
+
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const carouselRef = useRef(null);
   const dotsRef = useRef(null);
 
-  // Ensure active dot is visible on mobile without disrupting page scroll
+  // Background preloading logic
+  useEffect(() => {
+    const preloadImage = (index) => {
+      const item = ATTRACTIONS_DATA[index];
+      if (item && item.image) {
+        const img = new Image();
+        img.src = process.env.PUBLIC_URL + item.image;
+      }
+    };
+
+    const nextIndex = (currentIndex + 1) % ATTRACTIONS_DATA.length;
+    const prevIndex = currentIndex === 0 ? ATTRACTIONS_DATA.length - 1 : currentIndex - 1;
+
+    preloadImage(nextIndex);
+    preloadImage(prevIndex);
+  }, [currentIndex]);
+
+  // Scroll active dot into view
   useEffect(() => {
     const container = dotsRef.current;
     if (container) {
@@ -263,13 +282,16 @@ function TourGuide() {
   }, [currentIndex]);
 
   const goToSlide = useCallback((index) => {
-    if (isTransitioning) return;
+    if (isTransitioning || index === currentIndex) return;
+
     setIsTransitioning(true);
+    setIsImageLoading(true); // Reset loading state for new image
+
     setTimeout(() => {
       setCurrentIndex(index);
       setIsTransitioning(false);
-    }, 400);
-  }, [isTransitioning]);
+    }, 400); // Matches CSS transition duration
+  }, [isTransitioning, currentIndex]);
 
   const nextSlide = useCallback(() => {
     const nextIndex = (currentIndex + 1) % ATTRACTIONS_DATA.length;
@@ -338,10 +360,23 @@ function TourGuide() {
             {/* Feature Image */}
             <div className="tour-guide__image-wrapper">
               <div className="tour-guide__image">
+                {/* Loader Overlay */}
+                {isImageLoading && (
+                  <div className="tour-guide__loader">
+                    <div className="tour-guide__spinner" />
+                  </div>
+                )}
+
                 <img
+                  key={currentItem.image} /* Force re-render to ensure onLoad fires for new src */
                   src={process.env.PUBLIC_URL + currentItem.image}
                   alt={currentItem.name}
-                  loading="lazy"
+                  loading="eager"
+                  onLoad={() => setIsImageLoading(false)}
+                  style={{
+                    opacity: isImageLoading ? 0 : 1,
+                    transition: 'opacity 0.6s ease-out'
+                  }}
                 />
                 <div className="tour-guide__image-overlay" />
               </div>
@@ -492,6 +527,30 @@ function TourGuide() {
           box-shadow: 0 20px 40px rgba(0,0,0,0.6);
           position: relative;
           transition: transform 0.4s ease;
+          background-color: #0a0a0a; /* Fallback dark bg */
+        }
+        
+        .tour-guide__loader {
+          position: absolute;
+          inset: 0;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #121212;
+          z-index: 5;
+        }
+        
+        .tour-guide__spinner {
+          width: 40px;
+          height: 40px;
+          border: 2px solid rgba(212, 175, 55, 0.2);
+          border-top-color: var(--luxe-gold);
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+          to { transform: rotate(360deg); }
         }
 
         @media (min-width: 1024px) {
@@ -512,12 +571,14 @@ function TourGuide() {
           width: 100%;
           height: 100%;
           object-fit: cover;
+          display: block; /* Removes bottom space */
         }
 
         .tour-guide__image-overlay {
           position: absolute;
           inset: 0;
           background: linear-gradient(to bottom, transparent 50%, rgba(0,0,0,0.7));
+          pointer-events: none;
         }
 
         .tour-guide__slide-tag {
@@ -656,7 +717,7 @@ function TourGuide() {
         }
 
         .tour-guide__nav--prev { left: 0; }
-        .tour-guide__nav--next { right: 0; }
+        .tour-guide__nav--next { right: -0; }
 
         @media (min-width: 1440px) {
           .tour-guide__nav--prev { left: -20px; }

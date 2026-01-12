@@ -1,14 +1,14 @@
 /**
  * @fileoverview Hero Section Component - "Vibe Coding" Edition.
  * Implements immersive, emotionally engaging first impression with:
- * - Typewriter text reveal
+ * - Fade-in text reveal
  * - Dynamic time-based greetings
  * - Mouse-follow parallax
  * - Premium animations and interactions
- * @version 4.0.0
+ * @version 4.1.0
  */
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ArrowDown, ArrowRight, Loader2 } from 'lucide-react';
 import AdaptiveVideo from '../common/AdaptiveVideo';
 
@@ -32,11 +32,13 @@ function Hero({
   compressedVideo,
   posterImage,
   backgroundVideo, // Backwards compatibility
-  ctaHref = '#rooms',
+  ctaHref = '#apartments',
+  onReady,
+  startAnimation = false, // Controlled by App.js after preloader fades
 }) {
   // --- State Management ---
-  const [text, setText] = useState('');
-  const [isTypingComplete, setIsTypingComplete] = useState(false);
+  const [isTitleVisible, setIsTitleVisible] = useState(false);
+  const [areSubtitlesVisible, setAreSubtitlesVisible] = useState(false);
   const [greeting, setGreeting] = useState('');
   const [subheadlineIndex, setSubheadlineIndex] = useState(0);
   const [isHoveringCta, setIsHoveringCta] = useState(false);
@@ -49,40 +51,48 @@ function Hero({
 
   // --- Dynamic Greeting ---
   useEffect(() => {
+    if (!startAnimation) return;
+
     const hours = new Date().getHours();
     let timeGreeting = "Good evening";
     if (hours < 12) timeGreeting = "Good morning";
     else if (hours < 18) timeGreeting = "Good afternoon";
 
-    setGreeting(timeGreeting);
-  }, []);
+    // Small delay before greeting fades in
+    const timer = setTimeout(() => setGreeting(timeGreeting), 500);
+    return () => clearTimeout(timer);
+  }, [startAnimation]);
 
-  // --- Typewriter Effect ---
+  // --- Animation Sequencing (Replaces Typewriter) ---
   useEffect(() => {
-    let currentIndex = 0;
-    const typeInterval = setInterval(() => {
-      if (currentIndex <= fullTitle.length) {
-        setText(fullTitle.slice(0, currentIndex));
-        currentIndex++;
-      } else {
-        clearInterval(typeInterval);
-        setIsTypingComplete(true);
-      }
-    }, 80); // 80ms delay per letter
+    if (!startAnimation) return;
 
-    return () => clearInterval(typeInterval);
-  }, []);
+    // 1. Fade in Title
+    const titleTimer = setTimeout(() => {
+      setIsTitleVisible(true);
+    }, 100); // Immediate fade after curtain lift
+
+    // 2. Fade in Subtitles & CTA
+    const subtitleTimer = setTimeout(() => {
+      setAreSubtitlesVisible(true);
+    }, 1200); // 1.1s after title starts fading
+
+    return () => {
+      clearTimeout(titleTimer);
+      clearTimeout(subtitleTimer);
+    };
+  }, [startAnimation]);
 
   // --- Rotating Subheadline ---
   useEffect(() => {
-    if (!isTypingComplete) return;
+    if (!areSubtitlesVisible || !startAnimation) return;
 
     const interval = setInterval(() => {
       setSubheadlineIndex((prev) => (prev + 1) % ROTATING_MESSAGES.length);
     }, 8000); // Rotate every 8s
 
     return () => clearInterval(interval);
-  }, [isTypingComplete]);
+  }, [areSubtitlesVisible, startAnimation]);
 
   // --- Mouse Parallax ---
   useEffect(() => {
@@ -146,12 +156,15 @@ function Hero({
         }}
       >
         <div className="hero__overlay" style={{ opacity: 0.4 + (scrollProgress * 0.6) }} />
+        <div className="hero__vignette" />
+        <div className="hero__noise" />
 
         <AdaptiveVideo
           fullVideoSrc={fullVideo || backgroundVideo}
           compressedVideoSrc={compressedVideo}
           posterSrc={posterImage || '/images/hero.webp'}
           className="hero__media"
+          onReady={onReady}
         />
       </div>
 
@@ -163,37 +176,33 @@ function Hero({
           transform: `translateY(${scrollProgress * 100}px)`
         }}
       >
-        {/* Typewriter Headline */}
-        <h1 className="hero__title">
+        {/* Fade-in Headline with Staggered Reveal */}
+        <h1 className={`hero__title ${isTitleVisible ? 'visible' : ''}`}>
           <span className="sr-only">{fullTitle}</span>
-          <span aria-hidden="true">
-            {text.split(' ').map((word, i) => {
-              const isCastle = word === 'Castle' || (text.includes('Castle') && i === 1);
-              return (
-                <span key={i} className={isCastle ? 'text-gold italic' : ''}>
-                  {word}{' '}
-                </span>
-              );
-            })}
-            <span className={`cursor ${isTypingComplete ? 'cursor--hidden' : ''}`}>|</span>
+          <span className="word-wrapper">
+            <span className="word">Andalusian</span>
+            <span className="word text-gold italic">Castle</span>
           </span>
         </h1>
 
-        {/* Dynamic Subheadline */}
-        <div className={`hero__subtitle-wrapper ${isTypingComplete ? 'visible' : ''}`}>
+        {/* Dynamic Subheadline with Progress */}
+        <div className={`hero__subtitle-wrapper ${areSubtitlesVisible ? 'visible' : ''}`}>
           <p className="hero__subtitle">
             <span className="greeting">{greeting} — </span>
             <span key={subheadlineIndex} className="rotate-text">
               {activeMessage}
             </span>
           </p>
+          <div className="message-progress">
+            <div className="message-progress-bar" key={subheadlineIndex} style={{ animationDuration: '8s' }} />
+          </div>
         </div>
 
-        {/* CTA Button */}
-        <div className={`hero__actions ${isTypingComplete ? 'visible-delayed' : ''}`}>
+        {/* CTA Buttons */}
+        <div className={`hero__actions ${areSubtitlesVisible ? 'visible-delayed' : ''}`}>
           <a
             href={ctaHref}
-            className={`hero__btn ${isLoading ? 'loading' : ''}`}
+            className={`hero__btn hero__btn--primary ${isLoading ? 'loading' : ''}`}
             onClick={handleCtaClick}
             onMouseEnter={() => setIsHoveringCta(true)}
             onMouseLeave={() => setIsHoveringCta(false)}
@@ -203,24 +212,37 @@ function Hero({
             {isLoading ? (
               <Loader2 className="animate-spin" size={20} />
             ) : (
-              "RESERVE YOUR EXPERIENCE"
+              "RESERVE YOUR STAY"
             )}
             <div className="btn-glow" />
           </a>
+
+          <button
+            onClick={() => {
+              const target = document.getElementById('tour-guide');
+              if (target) target.scrollIntoView({ behavior: 'smooth' });
+            }}
+            className="hero__btn hero__btn--secondary"
+            onMouseEnter={() => setIsHoveringCta(true)}
+            onMouseLeave={() => setIsHoveringCta(false)}
+          >
+            EXPLORE TOURS
+            <div className="btn-glow" />
+          </button>
         </div>
       </div>
 
-      {/* Scroll Prompt */}
+      {/* Premium Scroll Indicator */}
       <button
         className="scroll-prompt"
-        onClick={() => document.getElementById('rooms')?.scrollIntoView({ behavior: 'smooth' })}
+        onClick={() => document.getElementById('apartments')?.scrollIntoView({ behavior: 'smooth' })}
         aria-label="Scroll down to discover more"
       >
+        <div className="mouse-icon">
+          <div className="mouse-wheel" />
+        </div>
         <span className="scroll-text">
           {isHoveringCta ? "See What Awaits" : "DISCOVER MORE"}
-        </span>
-        <span className="scroll-icon">
-          {isHoveringCta ? <ArrowRight size={20} /> : <ArrowDown size={20} />}
         </span>
       </button>
 
@@ -260,6 +282,24 @@ function Hero({
           transition: opacity 0.3s ease;
         }
 
+        .hero__vignette {
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(circle at center, transparent 0%, rgba(0,0,0,0.4) 100%);
+          z-index: 2;
+          pointer-events: none;
+        }
+
+        .hero__noise {
+          position: absolute;
+          inset: 0;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+          opacity: 0.05;
+          z-index: 3;
+          pointer-events: none;
+          mix-blend-mode: overlay;
+        }
+
         .hero__content {
           position: relative;
           z-index: 10;
@@ -273,14 +313,47 @@ function Hero({
         /* --- Typography --- */
         .hero__title {
           font-family: 'Playfair Display', serif;
-          font-size: clamp(3rem, 8vw, 6rem);
+          font-size: clamp(3rem, 8vw, 6.5rem);
           font-weight: 700;
           line-height: 1.1;
-          margin-bottom: 1.5rem;
-          min-height: 1.2em;
-          color: #ffffff !important;
-          text-shadow: 0 4px 30px rgba(0,0,0,0.8);
-          animation: titlePulse 5s infinite ease-in-out 3s;
+          margin-bottom: 2rem;
+          color: #ffffff;
+          perspective: 1000px;
+        }
+
+        .word-wrapper {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.2em;
+        }
+
+        @media (min-width: 1024px) {
+          .word-wrapper {
+            flex-direction: row;
+            justify-content: center;
+            gap: 0.4em;
+            align-items: baseline; /* Align to font baseline */
+          }
+        }
+
+        .word {
+          display: inline-block;
+          opacity: 0;
+          transform: translateY(40px) rotateX(-20deg);
+          transition: all 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .hero__title.visible .word:nth-child(1) {
+          opacity: 1;
+          transform: translateY(0) rotateX(0);
+          transition-delay: 0.2s;
+        }
+
+        .hero__title.visible .word:nth-child(2) {
+          opacity: 1;
+          transform: translateY(0) rotateX(0);
+          transition-delay: 0.5s;
         }
 
         .hero .text-gold {
@@ -307,42 +380,53 @@ function Hero({
         
         .hero .italic {
           font-style: italic;
-          padding-right: 0.15em; /* Prevent cropping of last letter swash */
-          display: inline-block; /* Ensure padding applies correctly */
-        }
-
-        .cursor {
+          padding-right: 0.15em; /* Prevent cropping */
           display: inline-block;
-          width: 2px;
-          background-color: var(--luxe-gold);
-          animation: blink 1s step-end infinite;
-          vertical-align: text-bottom;
-          height: 1em;
-        }
-
-        .cursor--hidden {
-          display: none;
+          vertical-align: baseline; /* Stick to baseline */
         }
 
         /* --- Subtitle --- */
         .hero__subtitle-wrapper {
           font-family: 'Inter', sans-serif;
-          font-size: clamp(1rem, 2vw, 1.5rem);
+          font-size: clamp(1rem, 1.8vw, 1.3rem);
           font-weight: 300;
-          color: #f9f5f0 !important; /* Force cream-light */
-          text-shadow: 0 2px 20px rgba(0,0,0,0.9); /* Strong shadow for readability */
+          color: #f9f5f0 !important;
+          text-shadow: 0 2px 20px rgba(0,0,0,0.9);
           letter-spacing: 0.05em;
-          margin-bottom: 3rem;
+          margin-bottom: 4rem;
           opacity: 0;
           transform: translateY(20px);
-          transition: all 1s ease-out;
-          height: 2em;
-          overflow: hidden;
+          transition: all 1s ease-out 1s;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 15px;
         }
 
         .hero__subtitle-wrapper.visible {
           opacity: 1;
           transform: translateY(0);
+        }
+
+        .message-progress {
+          width: 60px;
+          height: 2px;
+          background: rgba(255, 255, 255, 0.1);
+          overflow: hidden;
+          border-radius: 2px;
+        }
+
+        .message-progress-bar {
+          height: 100%;
+          background: var(--luxe-gold);
+          width: 100%;
+          transform-origin: left;
+          animation: progressLinear infinite linear;
+        }
+
+        @keyframes progressLinear {
+          from { transform: scaleX(0); }
+          to { transform: scaleX(1); }
         }
 
         .greeting {
@@ -358,8 +442,11 @@ function Hero({
           animation: slideUpFade 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
-        /* --- Button --- */
+        /* --- Buttons --- */
         .hero__actions {
+          display: flex;
+          gap: 20px;
+          justify-content: center;
           opacity: 0;
           transform: translateY(20px);
           transition: all 1s ease 0.5s;
@@ -376,8 +463,6 @@ function Hero({
           align-items: center;
           gap: 10px;
           padding: 18px 40px;
-          background: var(--luxe-gold);
-          color: var(--charcoal-deep);
           font-family: 'Inter', sans-serif;
           font-weight: 700;
           font-size: 0.9rem;
@@ -387,12 +472,35 @@ function Hero({
           border-radius: 4px;
           overflow: hidden;
           transition: all 0.3s ease;
+          border: none;
+          cursor: pointer;
+        }
+
+        .hero__btn--primary {
+          background: var(--luxe-gold);
+          color: var(--charcoal-deep);
+        }
+
+        .hero__btn--secondary {
+          background: rgba(255, 255, 255, 0.1);
+          color: var(--pure-white);
+          backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .hero__btn:hover {
           transform: translateY(-2px);
+          box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero__btn--primary:hover {
+          background: #fff;
           box-shadow: 0 10px 30px rgba(255, 215, 0, 0.3);
-          background: #fff; /* Optional contrast shift on hover */
+        }
+
+        .hero__btn--secondary:hover {
+          background: rgba(255, 255, 255, 0.2);
+          border-color: var(--luxe-gold);
         }
 
         .btn-glow {
@@ -412,7 +520,7 @@ function Hero({
           height: 300px;
         }
 
-        /* --- Scroll Prompt --- */
+        /* --- Premium Scroll Indicator --- */
         .scroll-prompt {
           position: absolute;
           bottom: 40px;
@@ -424,36 +532,53 @@ function Hero({
           display: flex;
           flex-direction: column;
           align-items: center;
-          gap: 10px;
+          gap: 15px;
           cursor: pointer;
           z-index: 10;
-          transition: color 0.3s;
+          transition: all 0.3s ease;
+          opacity: 0.7;
         }
 
         .scroll-prompt:hover {
           color: var(--luxe-gold);
+          opacity: 1;
+          transform: translateX(-50%) translateY(-5px);
+        }
+
+        .mouse-icon {
+          width: 24px;
+          height: 40px;
+          border: 2px solid currentColor;
+          border-radius: 12px;
+          position: relative;
+        }
+
+        .mouse-wheel {
+          width: 2px;
+          height: 8px;
+          background: var(--luxe-gold);
+          position: absolute;
+          top: 8px;
+          left: 50%;
+          transform: translateX(-50%);
+          border-radius: 2px;
+          animation: mouseScroll 2s infinite ease-in-out;
+        }
+
+        @keyframes mouseScroll {
+          0% { transform: translateX(-50%) translateY(0); opacity: 1; }
+          100% { transform: translateX(-50%) translateY(12px); opacity: 0; }
         }
 
         .scroll-text {
           font-family: 'Inter', sans-serif;
-          font-size: 0.75rem;
-          letter-spacing: 0.2em;
+          font-size: 0.7rem;
+          letter-spacing: 0.3em;
           text-transform: uppercase;
-        }
-
-        .scroll-icon {
-          animation: bounce 2s infinite;
-        }
-
-        .scroll-prompt:hover .scroll-icon {
-          animation: none;
+          font-weight: 600;
         }
 
         /* --- Keyframes --- */
-        @keyframes blink {
-          50% { opacity: 0; }
-        }
-
         @keyframes titlePulse {
           0%, 100% { transform: scale(1); }
           50% { transform: scale(1.02); }
@@ -482,8 +607,15 @@ function Hero({
             height: auto;
           }
 
+          .hero__actions {
+            flex-direction: column;
+            gap: 12px;
+            width: 100%;
+            padding: 0 20px;
+          }
+
           .hero__btn {
-            padding: 15px 30px;
+            padding: 15px 25px;
             width: 100%;
             justify-content: center;
           }

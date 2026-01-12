@@ -229,9 +229,6 @@ function Amenities() {
 
               {/* Tile Content - FR-4.2 */}
               <div className="amenities__tile-content">
-                <span className="amenities__tile-icon" role="img" aria-hidden="true">
-                  {amenity.icon}
-                </span>
                 <h3 className="amenities__tile-title">{amenity.name}</h3>
                 <p className="amenities__tile-description">{amenity.description}</p>
               </div>
@@ -308,13 +305,14 @@ function Amenities() {
         /* Tile Image */
         .amenities__tile-image {
           position: relative;
-          height: 140px;
+          height: 180px;
           overflow: hidden;
+          background: #f0f0f0;
         }
 
         @media (min-width: 768px) {
           .amenities__tile-image {
-            height: 160px;
+            height: 220px;
           }
         }
 
@@ -322,6 +320,7 @@ function Amenities() {
           width: 100%;
           height: 100%;
           object-fit: cover;
+          display: block;
           transition: transform 0.5s ease;
         }
 
@@ -341,43 +340,14 @@ function Amenities() {
 
         /* Tile Content */
         .amenities__tile-content {
-          padding: var(--space-4) var(--space-4) var(--space-5);
+          padding: var(--space-6) var(--space-5);
           text-align: center;
           display: flex;
           flex-direction: column;
           align-items: center;
         }
 
-        .amenities__tile-icon {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 56px;
-          height: 56px;
-          background: var(--cream-light);
-          color: var(--luxe-gold);
-          border-radius: 50%;
-          margin-top: -36px;
-          margin-bottom: var(--space-3);
-          transition: all 0.3s ease;
-          border: 2px solid rgba(212, 175, 55, 0.25);
-          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-          position: relative;
-          z-index: 2;
-        }
 
-        .amenities__tile-icon svg {
-          width: 26px;
-          height: 26px;
-        }
-
-        .amenities__tile:hover .amenities__tile-icon {
-          transform: scale(1.1);
-          background: var(--luxe-gold);
-          color: var(--charcoal-darker);
-          border-color: var(--luxe-gold);
-          box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
-        }
 
         .amenities__tile-title {
           font-family: var(--font-primary);
