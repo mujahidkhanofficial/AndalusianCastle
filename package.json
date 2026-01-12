@@ -5,7 +5,6 @@
     "description": "Luxury hotel static SPA for Andalusian Castle",
     "author": "Andalusian Castle",
     "license": "UNLICENSED",
-    "homepage": "https://andalusiancastle.com/",
     "scripts": {
         "start": "react-scripts start",
         "build": "react-scripts build",
@@ -16,9 +15,7 @@
         "lighthouse": "lhci autorun",
         "lighthouse:local": "npx lighthouse http://localhost:3000 --output html --output-path ./lighthouse-report.html",
         "analyze": "source-map-explorer 'build/static/js/*.js'",
-        "prebuild": "npm run sitemap",
-        "predeploy": "npm run build",
-        "deploy": "gh-pages -d build"
+        "prebuild": "npm run sitemap"
     },
     "dependencies": {
         "@emailjs/browser": "^4.4.1",
