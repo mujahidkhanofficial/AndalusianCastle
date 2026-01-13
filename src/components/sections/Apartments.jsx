@@ -20,6 +20,8 @@ const APARTMENTS_DATA = [
     name: 'Luxury Apartment',
     description: 'Experience the comfort of our luxury apartments, designed for relaxation and convenience. Perfect base for your stay in Lahore.',
     price: '7,500 PKR',
+    originalPrice: '10,000 PKR',
+    discount: '25% OFF',
     priceNote: 'All taxes included',
     image: '/images/dining/dining-03-feast.webp',
     amenities: ['wifi', 'tv', 'ac', 'shower'],
@@ -37,6 +39,8 @@ const APARTMENTS_DATA = [
     name: 'Super Luxury Apartment',
     description: 'Upgrade to our Super Luxury Apartment for an elevated experience. Premium furnishings, enhanced amenities, and superior views of Bahria Town.',
     price: '10,000 PKR',
+    originalPrice: '12,500 PKR',
+    discount: '20% OFF',
     priceNote: 'All taxes included',
     image: '/images/events/events-04-wedding.webp',
     amenities: ['wifi', 'tv', 'ac', 'bathtub'],
@@ -214,6 +218,11 @@ function Apartments() {
                   loading="lazy"
                   decoding="async"
                 />
+                {apartment.discount && (
+                  <div className="rooms__discount-badge">
+                    {apartment.discount}
+                  </div>
+                )}
                 <div className="rooms__card-overlay">
                   <ul className="rooms__features-list">
                     {apartment.features.map((feature) => (
@@ -249,9 +258,16 @@ function Apartments() {
                 </div>
 
                 <div className="rooms__price">
-                  <span className="rooms__price-from">From</span>
-                  <span className="rooms__price-amount">{apartment.price}</span>
-                  <span className="rooms__price-per">/ night</span>
+                  <div className="rooms__price-row-top">
+                    <span className="rooms__price-from">From</span>
+                    {apartment.originalPrice && (
+                      <span className="rooms__price-original">{apartment.originalPrice}</span>
+                    )}
+                  </div>
+                  <div className="rooms__price-row-main">
+                    <span className="rooms__price-amount">{apartment.price}</span>
+                    <span className="rooms__price-per">/ night</span>
+                  </div>
                 </div>
                 {apartment.priceNote && (
                   <div className="rooms__price-note" style={{ fontSize: '0.8rem', color: '#666', marginTop: '4px' }}>
@@ -499,22 +515,61 @@ function Apartments() {
 
         .rooms__price {
           display: flex;
-          align-items: baseline;
-          gap: var(--space-1);
+          flex-direction: column;
+          gap: 4px;
           margin-bottom: var(--space-4);
         }
 
-        .rooms__price-from {
-          font-size: var(--text-xs);
+        .rooms__price-row-top {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 0.9rem;
           color: var(--charcoal-deep);
-          opacity: 0.7;
+          opacity: 0.8;
+        }
+
+        .rooms__price-row-main {
+          display: flex;
+          align-items: baseline;
+          gap: 6px;
+        }
+
+        .rooms__price-from {
+          font-size: 0.85rem;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+        }
+
+        .rooms__price-original {
+          text-decoration: line-through;
+          color: #999;
+          font-size: 0.9rem;
+        }
+
+        .rooms__discount-badge {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          background: linear-gradient(135deg, #D4AF37 0%, #B48F1F 100%);
+          color: white;
+          padding: 8px 16px;
+          font-weight: 700;
+          font-size: 0.85rem;
+          border-radius: 4px;
+          z-index: 10;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
         }
 
         .rooms__price-amount {
-          font-family: var(--font-primary);
+          font-family: var(--font-secondary);
           font-size: var(--text-2xl);
-          font-weight: var(--font-weight-playfair-bold);
+          font-weight: var(--font-weight-montserrat-semibold);
           color: var(--luxe-gold);
+          letter-spacing: -0.02em;
+          line-height: 1;
         }
 
         .rooms__price-per {
