@@ -42,3 +42,6 @@ lighthouse-report.html
 config.local.js
 .vercel
 .env*.local
+
+# Local Netlify folder
+.netlify
