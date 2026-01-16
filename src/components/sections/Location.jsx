@@ -7,13 +7,13 @@
 
 import React, { useState, useCallback } from 'react';
 import {
-    Mail,
-    Phone,
-    MessageSquare,
-    User,
-    Send,
-    Tag,
-    MapPin
+  Mail,
+  Phone,
+  MessageSquare,
+  User,
+  Send,
+  Tag,
+  MapPin
 } from 'lucide-react';
 import emailjs from '@emailjs/browser';
 
@@ -23,46 +23,46 @@ import emailjs from '@emailjs/browser';
  * @returns {string} Sanitized input
  */
 function sanitizeInput(input) {
-    return input
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#x27;')
-        .trim();
+  return input
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .trim();
 }
 
 /**
  * Validation rules.
  */
 const validators = {
-    name: (value) => {
-        if (!value.trim()) return 'Name is required';
-        if (value.length < 2) return 'Name must be at least 2 characters';
-        if (value.length > 100) return 'Name must be less than 100 characters';
-        return null;
-    },
-    email: (value) => {
-        if (!value.trim()) return 'Email is required';
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(value)) return 'Please enter a valid email address';
-        return null;
-    },
-    phone: (value) => {
-        if (!value.trim()) return null; // Optional
-        const phoneRegex = /^[+]?[\d\s\-().]{7,20}$/;
-        if (!phoneRegex.test(value)) return 'Please enter a valid phone number';
-        return null;
-    },
-    subject: (value) => {
-        if (!value.trim()) return 'Please select a subject';
-        return null;
-    },
-    message: (value) => {
-        if (!value.trim()) return 'Message is required';
-        if (value.length < 10) return 'Message must be at least 10 characters';
-        if (value.length > 1000) return 'Message must be less than 1000 characters';
-        return null;
-    },
+  name: (value) => {
+    if (!value.trim()) return 'Name is required';
+    if (value.length < 2) return 'Name must be at least 2 characters';
+    if (value.length > 100) return 'Name must be less than 100 characters';
+    return null;
+  },
+  email: (value) => {
+    if (!value.trim()) return 'Email is required';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(value)) return 'Please enter a valid email address';
+    return null;
+  },
+  phone: (value) => {
+    if (!value.trim()) return null; // Optional
+    const phoneRegex = /^[+]?[\d\s\-().]{7,20}$/;
+    if (!phoneRegex.test(value)) return 'Please enter a valid phone number';
+    return null;
+  },
+  subject: (value) => {
+    if (!value.trim()) return 'Please select a subject';
+    return null;
+  },
+  message: (value) => {
+    if (!value.trim()) return 'Message is required';
+    if (value.length < 10) return 'Message must be at least 10 characters';
+    if (value.length > 1000) return 'Message must be less than 1000 characters';
+    return null;
+  },
 };
 
 /**
@@ -78,303 +78,302 @@ const validators = {
  * @returns {React.ReactElement} Location section element
  */
 function Location() {
-    // Form state
-    const [formData, setFormData] = useState({
-        name: '',
-        email: '',
-        phone: '',
-        subject: '',
-        message: '',
+  // Form state
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    subject: '',
+    message: '',
+  });
+
+  // Validation errors
+  const [errors, setErrors] = useState({});
+
+  // Touched fields (for real-time validation)
+  const [touched, setTouched] = useState({});
+
+  // Form submission state
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState(null); // 'success' | 'error'
+
+  // Handle input change
+  const handleChange = useCallback((e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
+    // Real-time validation if field was touched
+    if (touched[name]) {
+      const error = validators[name]?.(value);
+      setErrors((prev) => ({ ...prev, [name]: error }));
+    }
+  }, [touched]);
+
+  // Handle blur (mark field as touched)
+  const handleBlur = useCallback((e) => {
+    const { name, value } = e.target;
+    setTouched((prev) => ({ ...prev, [name]: true }));
+
+    // Validate on blur
+    const error = validators[name]?.(value);
+    setErrors((prev) => ({ ...prev, [name]: error }));
+  }, []);
+
+  // Validate entire form
+  const validateForm = useCallback(() => {
+    const newErrors = {};
+    Object.keys(formData).forEach((key) => {
+      const error = validators[key]?.(formData[key]);
+      if (error) newErrors[key] = error;
     });
+    setErrors(newErrors);
+    setTouched({
+      name: true,
+      email: true,
+      phone: true,
+      subject: true,
+      message: true,
+    });
+    return Object.keys(newErrors).length === 0;
+  }, [formData]);
 
-    // Validation errors
-    const [errors, setErrors] = useState({});
+  // Handle form submission - FR-9.7
+  const handleSubmit = useCallback(async (e) => {
+    e.preventDefault();
 
-    // Touched fields (for real-time validation)
-    const [touched, setTouched] = useState({});
+    if (!validateForm()) return;
 
-    // Form submission state
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [submitStatus, setSubmitStatus] = useState(null); // 'success' | 'error'
+    setIsSubmitting(true);
+    setSubmitStatus(null);
 
-    // Handle input change
-    const handleChange = useCallback((e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+    // Sanitize inputs
+    const sanitizedData = {
+      name: sanitizeInput(formData.name),
+      email: sanitizeInput(formData.email),
+      phone: sanitizeInput(formData.phone),
+      subject: sanitizeInput(formData.subject),
+      message: sanitizeInput(formData.message),
+    };
 
-        // Real-time validation if field was touched
-        if (touched[name]) {
-            const error = validators[name]?.(value);
-            setErrors((prev) => ({ ...prev, [name]: error }));
-        }
-    }, [touched]);
+    try {
+      const SERVICE_ID = 'service_jrzd6x9';
+      const TEMPLATE_ID = 'template_1jsut4j';
+      const PUBLIC_KEY = 'a9XK2OYIo0rXz_YcR';
 
-    // Handle blur (mark field as touched)
-    const handleBlur = useCallback((e) => {
-        const { name, value } = e.target;
-        setTouched((prev) => ({ ...prev, [name]: true }));
+      const templateParams = {
+        from_name: sanitizedData.name,
+        from_email: sanitizedData.email,
+        phone_number: sanitizedData.phone,
+        subject: sanitizedData.subject,
+        message: sanitizedData.message,
+        to_name: 'Andalusian Castle Admin',
+      };
 
-        // Validate on blur
-        const error = validators[name]?.(value);
-        setErrors((prev) => ({ ...prev, [name]: error }));
-    }, []);
+      const response = await emailjs.send(
+        SERVICE_ID,
+        TEMPLATE_ID,
+        templateParams,
+        PUBLIC_KEY
+      );
 
-    // Validate entire form
-    const validateForm = useCallback(() => {
-        const newErrors = {};
-        Object.keys(formData).forEach((key) => {
-            const error = validators[key]?.(formData[key]);
-            if (error) newErrors[key] = error;
-        });
-        setErrors(newErrors);
-        setTouched({
-            name: true,
-            email: true,
-            phone: true,
-            subject: true,
-            message: true,
-        });
-        return Object.keys(newErrors).length === 0;
-    }, [formData]);
+      if (response.status === 200) {
+        setSubmitStatus('success');
+        setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
+        setTouched({});
+        setErrors({});
+      } else {
+        throw new Error('Failed to send message');
+      }
+    } catch (error) {
+      console.error('Submission error:', error);
+      setSubmitStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [formData, validateForm]);
 
-    // Handle form submission - FR-9.7
-    const handleSubmit = useCallback(async (e) => {
-        e.preventDefault();
+  return (
+    <section
+      id="location"
+      className="location section"
+      aria-labelledby="location-title"
+    >
+      <div className="container">
+        {/* Section Header */}
+        <header className="section-header text-center">
+          <h2 id="location-title" className="section-title">
+            Get in <span className="text-gold">Touch</span>
+          </h2>
+          <div className="divider-gold" aria-hidden="true" />
+          <p className="section-subtitle">
+            Have questions? Our team is here to help you plan your perfect stay.
+          </p>
+        </header>
 
-        if (!validateForm()) return;
-
-        setIsSubmitting(true);
-        setSubmitStatus(null);
-
-        // Sanitize inputs
-        const sanitizedData = {
-            name: sanitizeInput(formData.name),
-            email: sanitizeInput(formData.email),
-            phone: sanitizeInput(formData.phone),
-            subject: sanitizeInput(formData.subject),
-            message: sanitizeInput(formData.message),
-        };
-
-        try {
-            const SERVICE_ID = 'service_jrzd6x9';
-            const TEMPLATE_ID = 'template_1jsut4j';
-            const PUBLIC_KEY = 'a9XK2OYIo0rXz_YcR';
-
-            const templateParams = {
-                from_name: sanitizedData.name,
-                from_email: sanitizedData.email,
-                phone_number: sanitizedData.phone,
-                subject: sanitizedData.subject,
-                message: sanitizedData.message,
-                to_name: 'Andalusian Castle Admin',
-            };
-
-            const response = await emailjs.send(
-                SERVICE_ID,
-                TEMPLATE_ID,
-                templateParams,
-                PUBLIC_KEY
-            );
-
-            if (response.status === 200) {
-                setSubmitStatus('success');
-                setFormData({ name: '', email: '', phone: '', subject: '', message: '' });
-                setTouched({});
-                setErrors({});
-            } else {
-                throw new Error('Failed to send message');
-            }
-        } catch (error) {
-            console.error('Submission error:', error);
-            setSubmitStatus('error');
-        } finally {
-            setIsSubmitting(false);
-        }
-    }, [formData, validateForm]);
-
-    return (
-        <section
-            id="location"
-            className="location section"
-            aria-labelledby="location-title"
-        >
-            <div className="container">
-                {/* Section Header */}
-                <header className="section-header text-center">
-                    <h2 id="location-title" className="section-title">
-                        Get in <span className="text-gold">Touch</span>
-                    </h2>
-                    <div className="divider-gold" aria-hidden="true" />
-                    <p className="section-subtitle">
-                        Have questions? Our team is here to help you plan your perfect stay.
-                    </p>
-                </header>
-
-                <div className="location__grid">
-                    {/* Left Column: Map Only */}
-                    <div className="location__map-container">
-                        <div className="location__map">
-                            <iframe
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d13620.597148816828!2d74.1814722!3d31.3623889!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzHCsDIxJzQ0LjYiTiA3NMKwMTAnNTMuMyJF!5e0!3m2!1sen!2spk!4v1"
-                                width="100%"
-                                height="400"
-                                style={{ border: 0, filter: 'sepia(20%) saturate(90%)' }}
-                                allowFullScreen=""
-                                loading="lazy"
-                                referrerPolicy="no-referrer-when-downgrade"
-                                title="Andalusian Castle location map"
-                            />
-                        </div>
-                        <div className="location__map-info">
-                            <MapPin size={20} className="text-gold" />
-                            <p>Plaza 100, Nishtar Block, Sector E, Bahria Town, Lahore</p>
-                        </div>
-                    </div>
-
-                    {/* Right Column: Contact Form */}
-                    <div className="location__form-wrapper">
-                        <h3 className="location__form-title">Send Us a Message</h3>
-
-                        {/* Success Message */}
-                        {submitStatus === 'success' && (
-                            <div className="location__alert location__alert--success" role="alert">
-                                <strong>Thank you!</strong> Your message has been sent successfully.
-                            </div>
-                        )}
-
-                        {/* Error Message */}
-                        {submitStatus === 'error' && (
-                            <div className="location__alert location__alert--error" role="alert">
-                                <strong>Oops!</strong> Something went wrong. Please try again later.
-                            </div>
-                        )}
-
-                        <form
-                            className="location__form"
-                            onSubmit={handleSubmit}
-                            noValidate
-                            aria-label="Contact form"
-                        >
-                            <div className="location__form-row">
-                                <div className={`form-group ${errors.name ? 'form-group--error' : ''}`}>
-                                    <label htmlFor="contact-name">Full Name <span>*</span></label>
-                                    <div className="form-input-wrapper">
-                                        <User className="form-input-icon" size={18} />
-                                        <input
-                                            type="text"
-                                            id="contact-name"
-                                            name="name"
-                                            value={formData.name}
-                                            onChange={handleChange}
-                                            onBlur={handleBlur}
-                                            required
-                                            placeholder="Your full name"
-                                        />
-                                    </div>
-                                    {errors.name && <span className="form-error">{errors.name}</span>}
-                                </div>
-
-                                <div className={`form-group ${errors.email ? 'form-group--error' : ''}`}>
-                                    <label htmlFor="contact-email">Email <span>*</span></label>
-                                    <div className="form-input-wrapper">
-                                        <Mail className="form-input-icon" size={18} />
-                                        <input
-                                            type="email"
-                                            id="contact-email"
-                                            name="email"
-                                            value={formData.email}
-                                            onChange={handleChange}
-                                            onBlur={handleBlur}
-                                            required
-                                            placeholder="your@email.com"
-                                        />
-                                    </div>
-                                    {errors.email && <span className="form-error">{errors.email}</span>}
-                                </div>
-                            </div>
-
-                            <div className="location__form-row">
-                                <div className={`form-group ${errors.phone ? 'form-group--error' : ''}`}>
-                                    <label htmlFor="contact-phone">Phone Number</label>
-                                    <div className="form-input-wrapper">
-                                        <Phone className="form-input-icon" size={18} />
-                                        <input
-                                            type="tel"
-                                            id="contact-phone"
-                                            name="phone"
-                                            value={formData.phone}
-                                            onChange={handleChange}
-                                            onBlur={handleBlur}
-                                            placeholder="+92 3XX XXXXXXX"
-                                        />
-                                    </div>
-                                    {errors.phone && <span className="form-error">{errors.phone}</span>}
-                                </div>
-
-                                <div className={`form-group ${errors.subject ? 'form-group--error' : ''}`}>
-                                    <label htmlFor="contact-subject">Subject <span>*</span></label>
-                                    <div className="form-input-wrapper">
-                                        <Tag className="form-input-icon" size={18} />
-                                        <select
-                                            id="contact-subject"
-                                            name="subject"
-                                            value={formData.subject}
-                                            onChange={handleChange}
-                                            onBlur={handleBlur}
-                                            required
-                                        >
-                                            <option value="">Select a subject...</option>
-                                            <option value="reservation">Room Reservation</option>
-                                            <option value="event">Event Inquiry</option>
-                                            <option value="spa">Spa Booking</option>
-                                            <option value="dining">Dining Reservation</option>
-                                            <option value="feedback">Feedback</option>
-                                            <option value="other">Other</option>
-                                        </select>
-                                    </div>
-                                    {errors.subject && <span className="form-error">{errors.subject}</span>}
-                                </div>
-                            </div>
-
-                            <div className={`form-group ${errors.message ? 'form-group--error' : ''}`}>
-                                <label htmlFor="contact-message">Message <span>*</span></label>
-                                <div className="form-input-wrapper form-input-wrapper--textarea">
-                                    <MessageSquare className="form-input-icon" size={18} />
-                                    <textarea
-                                        id="contact-message"
-                                        name="message"
-                                        rows="4"
-                                        value={formData.message}
-                                        onChange={handleChange}
-                                        onBlur={handleBlur}
-                                        required
-                                        placeholder="How can we help you?"
-                                    />
-                                </div>
-                                <div className="form-footer">
-                                    {errors.message && <span className="form-error">{errors.message}</span>}
-                                    <span className="form-help">{formData.message.length}/1000</span>
-                                </div>
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="btn btn-primary btn-lg location__submit"
-                                disabled={isSubmitting}
-                            >
-                                {isSubmitting ? 'Sending...' : (
-                                    <>
-                                        <Send size={18} style={{ marginRight: '8px' }} />
-                                        Send Message
-                                    </>
-                                )}
-                            </button>
-                        </form>
-                    </div>
-                </div>
+        <div className="location__grid">
+          {/* Left Column: Map Only */}
+          <div className="location__map-container">
+            <div className="location__map">
+              <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3406.8767394082597!2d74.17889857621132!3d31.362380454929728!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3918558bf10c22df%3A0x3ce9f0693e270818!2sAndalusian%20Castle%20Suites%20%26%20Apartments!5e0!3m2!1sen!2s!4v1768547441967!5m2!1sen!2s"
+                width="100%"
+                height="400"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                title="Andalusian Castle location map"
+              />
             </div>
+            <div className="location__map-info">
+              <MapPin size={20} className="text-gold" />
+              <p>Plaza 100, Nishtar Block, Sector E, Bahria Town, Lahore</p>
+            </div>
+          </div>
 
-            <style>{`
+          {/* Right Column: Contact Form */}
+          <div className="location__form-wrapper">
+            <h3 className="location__form-title">Send Us a Message</h3>
+
+            {/* Success Message */}
+            {submitStatus === 'success' && (
+              <div className="location__alert location__alert--success" role="alert">
+                <strong>Thank you!</strong> Your message has been sent successfully.
+              </div>
+            )}
+
+            {/* Error Message */}
+            {submitStatus === 'error' && (
+              <div className="location__alert location__alert--error" role="alert">
+                <strong>Oops!</strong> Something went wrong. Please try again later.
+              </div>
+            )}
+
+            <form
+              className="location__form"
+              onSubmit={handleSubmit}
+              noValidate
+              aria-label="Contact form"
+            >
+              <div className="location__form-row">
+                <div className={`form-group ${errors.name ? 'form-group--error' : ''}`}>
+                  <label htmlFor="contact-name">Full Name <span>*</span></label>
+                  <div className="form-input-wrapper">
+                    <User className="form-input-icon" size={18} />
+                    <input
+                      type="text"
+                      id="contact-name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      required
+                      placeholder="Your full name"
+                    />
+                  </div>
+                  {errors.name && <span className="form-error">{errors.name}</span>}
+                </div>
+
+                <div className={`form-group ${errors.email ? 'form-group--error' : ''}`}>
+                  <label htmlFor="contact-email">Email <span>*</span></label>
+                  <div className="form-input-wrapper">
+                    <Mail className="form-input-icon" size={18} />
+                    <input
+                      type="email"
+                      id="contact-email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      required
+                      placeholder="your@email.com"
+                    />
+                  </div>
+                  {errors.email && <span className="form-error">{errors.email}</span>}
+                </div>
+              </div>
+
+              <div className="location__form-row">
+                <div className={`form-group ${errors.phone ? 'form-group--error' : ''}`}>
+                  <label htmlFor="contact-phone">Phone Number</label>
+                  <div className="form-input-wrapper">
+                    <Phone className="form-input-icon" size={18} />
+                    <input
+                      type="tel"
+                      id="contact-phone"
+                      name="phone"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      placeholder="+92 3XX XXXXXXX"
+                    />
+                  </div>
+                  {errors.phone && <span className="form-error">{errors.phone}</span>}
+                </div>
+
+                <div className={`form-group ${errors.subject ? 'form-group--error' : ''}`}>
+                  <label htmlFor="contact-subject">Subject <span>*</span></label>
+                  <div className="form-input-wrapper">
+                    <Tag className="form-input-icon" size={18} />
+                    <select
+                      id="contact-subject"
+                      name="subject"
+                      value={formData.subject}
+                      onChange={handleChange}
+                      onBlur={handleBlur}
+                      required
+                    >
+                      <option value="">Select a subject...</option>
+                      <option value="reservation">Room Reservation</option>
+                      <option value="event">Event Inquiry</option>
+                      <option value="spa">Spa Booking</option>
+                      <option value="dining">Dining Reservation</option>
+                      <option value="feedback">Feedback</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  {errors.subject && <span className="form-error">{errors.subject}</span>}
+                </div>
+              </div>
+
+              <div className={`form-group ${errors.message ? 'form-group--error' : ''}`}>
+                <label htmlFor="contact-message">Message <span>*</span></label>
+                <div className="form-input-wrapper form-input-wrapper--textarea">
+                  <MessageSquare className="form-input-icon" size={18} />
+                  <textarea
+                    id="contact-message"
+                    name="message"
+                    rows="4"
+                    value={formData.message}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                    required
+                    placeholder="How can we help you?"
+                  />
+                </div>
+                <div className="form-footer">
+                  {errors.message && <span className="form-error">{errors.message}</span>}
+                  <span className="form-help">{formData.message.length}/1000</span>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="btn btn-primary btn-lg location__submit"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Sending...' : (
+                  <>
+                    <Send size={18} style={{ marginRight: '8px' }} />
+                    Send Message
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
         .location {
           background-color: var(--cream-light);
           padding: var(--space-20) 0;
@@ -619,8 +618,8 @@ function Location() {
           cursor: not-allowed;
         }
       `}</style>
-        </section>
-    );
+    </section>
+  );
 }
 
 export default Location;
